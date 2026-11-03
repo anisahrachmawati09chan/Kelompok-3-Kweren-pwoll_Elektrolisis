@@ -6,16 +6,19 @@ interface FormulaRendererProps {
 }
 
 /**
- * Renders chemical formulas with parsed subscripts, superscripts, and charges.
- * Example inputs: "Cu2+", "SO4^2-", "2H2O", "Cl-", "Na+", "e-"
+ * Komponen untuk menampilkan rumus kimia dengan format subskrip, superskrip, muatan ion, dan panah reaksi.
+ * Contoh masukan: "Cu2+", "SO4^2-", "2H2O", "Cl-", "Na+", "e-", "Cu2+ + 2e- -> Cu(s)"
  */
 export const FormulaRenderer: React.FC<FormulaRendererProps> = ({ formula, className = '' }) => {
-  // Simple parser: converts numbers following elements to subscript, and signs/charges to superscript
   const formatted = formula
+    .replace(/->/g, ' → ')
+    .replace(/\^/g, '')
     .replace(/2\+/g, '²⁺')
     .replace(/3\+/g, '³⁺')
     .replace(/\+/g, '⁺')
     .replace(/2-/g, '²⁻')
+    .replace(/3-/g, '³⁻')
+    .replace(/e-/g, 'e⁻')
     .replace(/-/g, '⁻')
     .replace(/2(?![⁺⁻\d])/g, '₂')
     .replace(/3(?![⁺⁻\d])/g, '₃')
