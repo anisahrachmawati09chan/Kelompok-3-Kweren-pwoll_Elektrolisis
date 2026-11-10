@@ -1,37 +1,41 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, User, LogOut } from 'lucide-react';
-import type { StudentProfile } from '../auth/LoginScreen';
+import { Search, Bell, ChevronDown, User, LogOut, BookOpen } from 'lucide-react';
+import type { UserProfile } from '../../utils/studentRecords';
 
 interface TopNavbarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onOpenStudySheet: () => void;
-  studentProfile: StudentProfile;
+  userProfile: UserProfile;
   onLogout?: () => void;
+  onOpenTeacherDashboard?: () => void;
 }
 
 /**
  * TopNavbar bergaya pill rounded seperti gambar referensi.
- * Menampilkan pencarian konsep kimia, notifikasi materi, dan profil siswa yang sedang login.
+ * Menampilkan pencarian konsep kimia, notifikasi materi, dan profil pengguna (Siswa atau Guru).
  */
 export const TopNavbar: React.FC<TopNavbarProps> = ({
   searchQuery,
   onSearchChange,
   onOpenStudySheet,
-  studentProfile,
+  userProfile,
   onLogout,
+  onOpenTeacherDashboard,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
-  // Fungsi pembuat inisial 2 huruf dari nama siswa (contoh: "Elsa Rasengraffe" -> "ER")
+  // Inisial avatar
   const getInitials = (fullName: string): string => {
     const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 0 || !parts[0]) return 'S';
+    if (parts.length === 0 || !parts[0]) return 'U';
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  const initials = getInitials(studentProfile.name);
+  const initials = getInitials(userProfile.name);
+  const isTeacher = userProfile.role === 'teacher';
+  const roleSubtitle = isTeacher ? userProfile.title : userProfile.className;
 
   return (
     <header className="dashboard-topbar">
@@ -47,8 +51,21 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         />
       </div>
 
-      {/* Sisi Kanan: Notifikasi & Profil Siswa Login */}
+      {/* Sisi Kanan: Tombol Guru (Jika Guru), Notifikasi & Profil */}
       <div className="topbar-right">
+        {/* Shortcut Dashboard Guru jika pengguna adalah Guru */}
+        {isTeacher && onOpenTeacherDashboard && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm teacher-quick-pill"
+            onClick={onOpenTeacherDashboard}
+            title="Buka Dashboard Panel Guru"
+          >
+            <BookOpen size={15} />
+            <span>Panel Guru</span>
+          </button>
+        )}
+
         {/* Tombol Notifikasi */}
         <button
           type="button"
@@ -61,12 +78,12 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           <span className="notif-badge-dot" />
         </button>
 
-        {/* Profil Siswa yang Sedang Login */}
+        {/* Profil Pengguna yang Sedang Login */}
         <div style={{ position: 'relative' }}>
           <div
             className="user-profile-pill"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            title={`Profil: ${studentProfile.name} (${studentProfile.className})`}
+            title={`Profil: ${userProfile.name} (${roleSubtitle})`}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -75,27 +92,48 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               }
             }}
           >
-            <div className="user-avatar-circle">
+            <div
+              className={`user-avatar-circle ${isTeacher ? 'teacher-avatar-circle' : ''}`}
+            >
               <span>{initials}</span>
             </div>
             <div>
-              <div className="user-name">{studentProfile.name}</div>
-              <span className="user-role-badge">{studentProfile.className}</span>
+              <div className="user-name">{userProfile.name}</div>
+              <span className="user-role-badge">{roleSubtitle}</span>
             </div>
             <ChevronDown size={14} className="user-dropdown-icon" />
           </div>
 
-          {/* Dropdown Menu Profil Siswa */}
+          {/* Dropdown Menu Profil Pengguna */}
           {isDropdownOpen && (
             <div className="profile-dropdown-menu">
               <div className="dropdown-user-info">
-                <div className="dropdown-avatar">{initials}</div>
+                <div
+                  className={`dropdown-avatar ${isTeacher ? 'teacher-avatar-circle' : ''}`}
+                >
+                  {initials}
+                </div>
                 <div>
-                  <strong>{studentProfile.name}</strong>
-                  <span>{studentProfile.className}</span>
+                  <strong>{userProfile.name}</strong>
+                  <span>{roleSubtitle}</span>
                 </div>
               </div>
               <hr className="dropdown-divider" />
+
+              {isTeacher && onOpenTeacherDashboard && (
+                <button
+                  type="button"
+                  className="dropdown-menu-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onOpenTeacherDashboard();
+                  }}
+                >
+                  <BookOpen size={16} />
+                  <span>Buka Dashboard Guru</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 className="dropdown-menu-item"
@@ -107,6 +145,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <User size={16} />
                 <span>Buka Lembar Kerja Belajar</span>
               </button>
+
               {onLogout && (
                 <button
                   type="button"
@@ -117,7 +156,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   }}
                 >
                   <LogOut size={16} />
-                  <span>Ganti Siswa / Keluar</span>
+                  <span>Ganti Akun / Keluar</span>
                 </button>
               )}
             </div>

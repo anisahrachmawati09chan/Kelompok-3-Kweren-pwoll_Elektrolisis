@@ -52,12 +52,12 @@ export const LearningCardsRow: React.FC<LearningCardsRowProps> = ({
     {
       id: '1.4',
       title: '1.4 Cek Pemahaman',
-      category: 'Formatif Cepat 2 Soal Kunci',
+      category: '4 Soal Evaluasi & Analisis Reaksi',
       theme: 'theme-rose',
       fillClass: 'fill-rose',
       icon: CheckSquare,
       progressPercent: 100,
-      metricLabel: 'Level 1',
+      metricLabel: '4 Soal Siap',
     },
   ];
 

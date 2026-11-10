@@ -1,10 +1,11 @@
 import React from 'react';
-import { Home, LayoutGrid, MessageSquare, Clock, HelpCircle, LogOut, FlaskConical } from 'lucide-react';
+import { Home, LayoutGrid, MessageSquare, Clock, HelpCircle, LogOut, FlaskConical, BookOpen } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   onLogout?: () => void;
+  isTeacher?: boolean;
 }
 
 /**
@@ -12,20 +13,29 @@ interface SidebarProps {
  * - Warna dasar Deep Indigo
  * - Notch kurva aktif (curved seamless notch)
  * - Tombol gambar rumah (Home) untuk beranda utama
+ * - Tab Dashboard Guru (jika yang login adalah Guru)
  * - Ikon navigasi bersih dan ramah bagi yang baru belajar React
  */
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
   onLogout,
+  isTeacher = false,
 }) => {
-  const navItems = [
+  const baseNavItems = [
     { id: 'home', label: 'Beranda Utama', icon: Home },
     { id: 'modules', label: 'Modul Belajar', icon: LayoutGrid },
     { id: 'discuss', label: 'Tanya Konsep', icon: MessageSquare },
     { id: 'history', label: 'Riwayat & Progres', icon: Clock },
     { id: 'help', label: 'Panduan PRD', icon: HelpCircle },
   ];
+
+  const navItems = isTeacher
+    ? [
+        { id: 'teacher', label: 'Dashboard Guru', icon: BookOpen },
+        ...baseNavItems,
+      ]
+    : baseNavItems;
 
   return (
     <aside className="dashboard-sidebar">
@@ -64,14 +74,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </ul>
       </div>
 
-      {/* Tombol Bawah (Keluar / Ganti Siswa) */}
+      {/* Tombol Bawah (Keluar / Ganti Akun) */}
       <div className="sidebar-bottom">
         <button
           type="button"
           className="sidebar-logout-btn"
           onClick={onLogout}
-          title="Keluar / Ganti Siswa"
-          aria-label="Keluar / Ganti Siswa"
+          title="Keluar / Ganti Akun"
+          aria-label="Keluar / Ganti Akun"
         >
           <LogOut size={18} />
         </button>
