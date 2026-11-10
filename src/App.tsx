@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/dashboard/Sidebar';
 import { TopNavbar } from './components/dashboard/TopNavbar';
 import { WelcomeBanner } from './components/dashboard/WelcomeBanner';
@@ -12,6 +12,9 @@ import type { UserProfile, StudentRecord } from './utils/studentRecords';
 import { studentRecordStore } from './utils/studentRecords';
 import type { QuizQuestion } from './data/questionsData';
 import { questionStore } from './data/questionsData';
+import { isFirebaseConfigured } from './config/firebase';
+import { firebaseService } from './services/firebaseService';
+import { firebaseAuthService } from './services/firebaseAuthService';
 import { Lock, BookOpen } from 'lucide-react';
 
 const STORAGE_KEY_USER = 'chemverse_active_user_v2';
@@ -66,6 +69,36 @@ function App() {
   };
 
   /**
+   * Sinkronisasi data awal dari Cloud Firestore saat aplikasi pertama kali dimuat (jika Firebase terkonfigurasi)
+   */
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+
+    let isMounted = true;
+    const initCloudData = async () => {
+      try {
+        const cloudStudents = await firebaseService.fetchStudentsFromCloud();
+        if (isMounted && cloudStudents && cloudStudents.length > 0) {
+          setStudents(cloudStudents);
+        }
+
+        const cloudQuestions = await firebaseService.fetchQuestionsFromCloud();
+        if (isMounted && cloudQuestions && cloudQuestions.length > 0) {
+          setQuestions(cloudQuestions);
+        }
+      } catch (err) {
+        console.warn('Gagal memuat data awal dari Firestore:', err);
+      }
+    };
+
+    initCloudData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  /**
    * Handler Login Siswa atau Guru
    */
   const handleLogin = (profile: UserProfile) => {
@@ -84,6 +117,14 @@ function App() {
       setStudents(updated);
       setActiveTab('home');
       triggerToast(`Selamat datang, ${profile.name}!`);
+
+      // Sinkronkan ke Cloud Firestore jika terhubung
+      if (isFirebaseConfigured) {
+        const currentStudent = updated.find((s) => s.name === profile.name);
+        if (currentStudent) {
+          firebaseService.saveStudentToCloud(currentStudent);
+        }
+      }
     } else {
       // Masuk ke dashboard guru
       setTeacherViewMode('dashboard');
@@ -96,6 +137,7 @@ function App() {
    */
   const handleLogout = () => {
     setUserProfile(null);
+    firebaseAuthService.logout().catch(() => {});
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.removeItem(STORAGE_KEY_USER);
@@ -113,6 +155,14 @@ function App() {
     if (userProfile && userProfile.role === 'student') {
       const updated = studentRecordStore.updateScore(userProfile.name, score, maxScore);
       setStudents(updated);
+
+      // Sinkronkan nilai terbaru ke Cloud Firestore jika terhubung
+      if (isFirebaseConfigured) {
+        const currentStudent = updated.find((s) => s.name === userProfile.name);
+        if (currentStudent) {
+          firebaseService.saveStudentToCloud(currentStudent);
+        }
+      }
     }
   };
 
@@ -122,6 +172,9 @@ function App() {
   const handleSaveQuestions = (newQuestions: QuizQuestion[]) => {
     setQuestions(newQuestions);
     questionStore.saveQuestions(newQuestions);
+    if (isFirebaseConfigured) {
+      firebaseService.saveQuestionsToCloud(newQuestions);
+    }
     triggerToast('Bank soal berhasil diperbarui!');
   };
 
@@ -131,7 +184,30 @@ function App() {
   const handleResetQuestions = () => {
     const defaultList = questionStore.resetToDefault();
     setQuestions(defaultList);
+    if (isFirebaseConfigured) {
+      firebaseService.saveQuestionsToCloud(defaultList);
+    }
     triggerToast('Bank soal dikembalikan ke 4 soal standar Kurikulum Merdeka.');
+  };
+
+  /**
+   * Handler Guru: Sinkronisasi Manual Data dari Cloud Firestore
+   */
+  const handleSyncCloud = async () => {
+    if (!isFirebaseConfigured) {
+      triggerToast('Firebase belum terhubung. Periksa konfigurasi di .env.local.');
+      return;
+    }
+    triggerToast('Menghubungkan ke Cloud Firestore...');
+    try {
+      const cloudStudents = await firebaseService.fetchStudentsFromCloud();
+      setStudents(cloudStudents);
+      const cloudQuestions = await firebaseService.fetchQuestionsFromCloud();
+      setQuestions(cloudQuestions);
+      triggerToast('Sinkronisasi Cloud Firestore berhasil!');
+    } catch {
+      triggerToast('Gagal menyinkronkan data dari Cloud Firestore.');
+    }
   };
 
   const handleOpenStudySheet = (subtopicId: string = '1.1') => {
@@ -156,6 +232,8 @@ function App() {
           onResetQuestions={handleResetQuestions}
           onOpenStudentView={() => setTeacherViewMode('student_preview')}
           onLogout={handleLogout}
+          isFirebaseConnected={isFirebaseConfigured}
+          onSyncCloud={handleSyncCloud}
         />
 
         {toastMessage && (

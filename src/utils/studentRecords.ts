@@ -18,12 +18,16 @@ export interface StudentProfile {
   role: 'student';
   name: string;
   className: string;
+  email?: string;
+  avatar?: string;
 }
 
 export interface TeacherProfile {
   role: 'teacher';
   name: string;
   title: string;
+  email?: string;
+  avatar?: string;
 }
 
 export type UserProfile = StudentProfile | TeacherProfile;

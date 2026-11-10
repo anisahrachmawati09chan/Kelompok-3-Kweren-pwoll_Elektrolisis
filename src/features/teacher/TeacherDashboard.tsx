@@ -15,6 +15,8 @@ import {
   Eye,
   X,
   Save,
+  Cloud,
+  RefreshCw,
 } from 'lucide-react';
 import type { TeacherProfile, StudentRecord } from '../../utils/studentRecords';
 import { exportStudentsToExcel } from '../../utils/studentRecords';
@@ -28,6 +30,8 @@ interface TeacherDashboardProps {
   onResetQuestions: () => void;
   onOpenStudentView: () => void;
   onLogout: () => void;
+  isFirebaseConnected?: boolean;
+  onSyncCloud?: () => void;
 }
 
 /**
@@ -37,6 +41,7 @@ interface TeacherDashboardProps {
  * 2. Filter kelas dan pencarian nama siswa.
  * 3. Ekspor nilai siswa ke Excel (.CSV terformat rapi).
  * 4. Manajemen Soal: Guru dapat menambah soal baru, mengubah (edit) soal, dan menghapus soal.
+ * 5. Indikator & Sinkronisasi Cloud Firestore Firebase.
  */
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   teacherProfile,
@@ -46,6 +51,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   onResetQuestions,
   onOpenStudentView,
   onLogout,
+  isFirebaseConnected = false,
+  onSyncCloud,
 }) => {
   const [activeTab, setActiveTab] = useState<'students' | 'questions'>('students');
   const [searchStudent, setSearchStudent] = useState<string>('');
@@ -204,6 +211,37 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </div>
 
         <div className="teacher-header-actions">
+          {/* Status Koneksi Firebase */}
+          <div
+            className={`cloud-status-pill ${
+              isFirebaseConnected ? 'cloud-online' : 'cloud-offline'
+            }`}
+            title={
+              isFirebaseConnected
+                ? 'Cloud Firestore Terhubung: Data siswa & soal tersinkronisasi online.'
+                : 'Penyimpanan Lokal: Konfigurasi Firebase di .env.local untuk menghubungkan Cloud Firestore.'
+            }
+          >
+            <Cloud size={15} />
+            <span>
+              {isFirebaseConnected
+                ? 'Cloud Firestore: Terhubung'
+                : 'Penyimpanan: Mode Lokal'}
+            </span>
+          </div>
+
+          {isFirebaseConnected && onSyncCloud && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm teacher-sync-btn"
+              onClick={onSyncCloud}
+              title="Perbarui data terbaru dari Cloud Firestore"
+            >
+              <RefreshCw size={14} />
+              <span>Sinkron Cloud</span>
+            </button>
+          )}
+
           <button
             type="button"
             className="btn btn-secondary teacher-preview-btn"

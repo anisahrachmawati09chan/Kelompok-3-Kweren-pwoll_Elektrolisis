@@ -95,7 +95,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             <div
               className={`user-avatar-circle ${isTeacher ? 'teacher-avatar-circle' : ''}`}
             >
-              <span>{initials}</span>
+              {userProfile.avatar ? (
+                <img
+                  src={userProfile.avatar}
+                  alt={userProfile.name}
+                  className="user-avatar-img"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span>{initials}</span>
+              )}
             </div>
             <div>
               <div className="user-name">{userProfile.name}</div>
@@ -111,7 +120,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <div
                   className={`dropdown-avatar ${isTeacher ? 'teacher-avatar-circle' : ''}`}
                 >
-                  {initials}
+                  {userProfile.avatar ? (
+                    <img
+                      src={userProfile.avatar}
+                      alt={userProfile.name}
+                      className="user-avatar-img"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
                 </div>
                 <div>
                   <strong>{userProfile.name}</strong>
