@@ -6,6 +6,8 @@ import { LearningCardsRow } from './components/dashboard/LearningCardsRow';
 import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
+import { ModulesPage } from './features/modules/ModulesPage';
+import { SoalLatihanPage } from './features/modules/SoalLatihanPage';
 import { LoginScreen } from './components/auth/LoginScreen';
 import type { StudentProfile } from './components/auth/LoginScreen';
 import { Lock } from 'lucide-react';
@@ -135,31 +137,57 @@ function App() {
           onLogout={handleLogout}
         />
 
-        {/* Baris 1: Banner Sambutan Peach dengan Nama Siswa yang Login */}
-        <WelcomeBanner
-          studentName={studentProfile.name}
-          onStartLearning={() => handleOpenStudySheet('1.1')}
-        />
-
-        {/* Baris 2: Bagian Belajar Utama Modul 1 (Popular Services Row) */}
-        <LearningCardsRow
-          onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
-          onSeeAll={() => handleOpenStudySheet('1.1')}
-        />
-
-        {/* Baris 3: Other Applications Grid (Kiri) + Chemistry Stats Widget (Kanan) */}
-        <div className="bottom-sections-row">
-          {/* Kiri: Kapsul Modul Lanjutan ("Belum Tersedia") & Aturan Lab */}
-          <QuickAppsGrid
-            onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
+        {/* ============================================================
+            HALAMAN MODUL BELAJAR — Tab "modules"
+        ============================================================ */}
+        {activeTab === 'modules' && (
+          <ModulesPage
+            onOpenStudySheet={handleOpenStudySheet}
             onLockedClick={(title) =>
-              triggerToast(`${title} bertatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
+              triggerToast(`${title} belum tersedia — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
             }
           />
+        )}
 
-          {/* Kanan: Widget Statistik Kimia (Donut Chart & Metrik Kuantitatif) */}
-          <ChemistryStatsWidget />
-        </div>
+        {/* ============================================================
+            HALAMAN SOAL LATIHAN — Tab "discuss" (Tanya Konsep)
+        ============================================================ */}
+        {activeTab === 'discuss' && (
+          <SoalLatihanPage />
+        )}
+
+        {/* ============================================================
+            BERANDA UTAMA — Tab "home", "help", "history"
+        ============================================================ */}
+        {(activeTab === 'home' || activeTab === 'help' || activeTab === 'history') && (
+          <>
+            {/* Baris 1: Banner Sambutan Peach dengan Nama Siswa yang Login */}
+            <WelcomeBanner
+              studentName={studentProfile.name}
+              onStartLearning={() => handleOpenStudySheet('1.1')}
+            />
+
+            {/* Baris 2: Bagian Belajar Utama Modul 1 (Popular Services Row) */}
+            <LearningCardsRow
+              onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
+              onSeeAll={() => handleOpenStudySheet('1.1')}
+            />
+
+            {/* Baris 3: Other Applications Grid (Kiri) + Chemistry Stats Widget (Kanan) */}
+            <div className="bottom-sections-row">
+              {/* Kiri: Kapsul Modul Lanjutan ("Belum Tersedia") & Aturan Lab */}
+              <QuickAppsGrid
+                onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
+                onLockedClick={(title) =>
+                  triggerToast(`${title} bertatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
+                }
+              />
+
+              {/* Kanan: Widget Statistik Kimia (Donut Chart & Metrik Kuantitatif) */}
+              <ChemistryStatsWidget />
+            </div>
+          </>
+        )}
       </main>
 
       {/* 3. Lembar Kerja Laboratorium Interaktif (Modal View) */}

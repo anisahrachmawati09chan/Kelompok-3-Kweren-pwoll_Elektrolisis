@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'home', label: 'Beranda Utama', icon: Home },
     { id: 'modules', label: 'Modul Belajar', icon: LayoutGrid },
-    { id: 'discuss', label: 'Tanya Konsep', icon: MessageSquare },
+    { id: 'discuss', label: 'Soal Latihan', icon: MessageSquare },
     { id: 'history', label: 'Riwayat & Progres', icon: Clock },
     { id: 'help', label: 'Panduan PRD', icon: HelpCircle },
   ];
