@@ -7,6 +7,8 @@ import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
 import { LoginScreen } from './components/auth/LoginScreen';
+import { AskTeacherView } from './features/teacher/AskTeacherView';
+import { HelpModal } from './components/help/HelpModal';
 import type { StudentProfile } from './components/auth/LoginScreen';
 import { Lock } from 'lucide-react';
 
@@ -14,15 +16,15 @@ const STORAGE_KEY_STUDENT = 'chemverse_logged_student_v1';
 
 /**
  * ChemVerse App - Modern Learning Dashboard
- * Alur Kerja:
- * 1. Menampilkan LoginScreen di awal (meminta Nama & Kelas siswa).
- * 2. Setelah masuk, berpindah ke Beranda Utama dengan tombol rumah (Home) aktif.
- * 3. Banner 'Selamat Belajar, [Nama]!' menyesuaikan secara dinamis dengan nama siswa.
- * 4. Profil di pojok kanan atas menampilkan nama lengkap, kelas, dan inisial avatar siswa.
- * 5. Siswa dapat keluar / berganti akun kapan saja melalui tombol di sidebar atau menu profil.
+ * Fitur:
+ * 1. LoginScreen di awal (meminta Nama & Kelas siswa).
+ * 2. Beranda Utama dengan tombol rumah (Home) aktif.
+ * 3. Menu 'Tanya dengan Guru' (Konsultasi langsung dengan guru kimia).
+ * 4. Menu 'Bantuan' yang menampilkan daftar email & kontak pendiri website.
+ * 5. Lembar kerja laboratorium interaktif Modul 1.
  */
 function App() {
-  // State profil siswa yang login (dibaca dari localStorage agar tetap tersimpan saat refresh)
+  // State profil siswa yang login
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(() => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -35,7 +37,7 @@ function App() {
     return null;
   });
 
-  // State navigasi tab sidebar: default 'home' (gambar tombol rumah) saat masuk beranda
+  // State navigasi tab sidebar: 'home' | 'modules' | 'teacher' | 'history' | 'help'
   const [activeTab, setActiveTab] = useState<string>('home');
 
   // State pencarian konsep di topbar
@@ -44,8 +46,14 @@ function App() {
   // State modal lembar kerja laboratorium Modul 1
   const [isLabSheetOpen, setIsLabSheetOpen] = useState<boolean>(false);
 
-  // Subtopik yang dipilih saat modal dibuka (1.1, 1.2, 1.3, 1.4)
+  // State modal bantuan & kontak pendiri
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
+
+  // Subtopik yang dipilih saat modal lembar kerja dibuka
   const [selectedSubtopicId, setSelectedSubtopicId] = useState<string>('1.1');
+
+  // Topik awal untuk menu Tanya Guru (jika diarahkan dari lembar belajar)
+  const [teacherTopic, setTeacherTopic] = useState<string | undefined>(undefined);
 
   // State pesan toast notifikasi sementara
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -65,7 +73,7 @@ function App() {
    */
   const handleLogin = (profile: StudentProfile) => {
     setStudentProfile(profile);
-    setActiveTab('home'); // Masuk ke beranda utama (tombol rumah)
+    setActiveTab('home');
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.setItem(STORAGE_KEY_STUDENT, JSON.stringify(profile));
@@ -98,6 +106,16 @@ function App() {
     setIsLabSheetOpen(true);
   };
 
+  /**
+   * Membuka menu Tanya Guru dengan topik materi tertentu
+   */
+  const handleOpenTeacherWithTopic = (topicTitle: string) => {
+    setIsLabSheetOpen(false);
+    setTeacherTopic(topicTitle);
+    setActiveTab('teacher');
+    triggerToast(`Beralih ke Tanya Guru: Topik "${topicTitle}" terpilih.`);
+  };
+
   // JIKA SISWA BELUM LOGIN: Tampilkan Layar Masuk Nama & Kelas
   if (!studentProfile) {
     return (
@@ -109,57 +127,83 @@ function App() {
     );
   }
 
-  // JIKA SISWA SUDAH LOGIN: Tampilkan Beranda Utama Dashboard
+  // JIKA SISWA SUDAH LOGIN: Tampilkan Dashboard
   return (
     <div className="dashboard-layout">
-      {/* 1. Sidebar Navigasi Kiri (Warna Deep Indigo & Tombol Rumah) */}
+      {/* 1. Sidebar Navigasi Kiri (Deep Indigo) */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={(tabId) => {
-          setActiveTab(tabId);
           if (tabId === 'help') {
-            handleOpenStudySheet('1.1');
+            setIsHelpModalOpen(true);
+            return;
           }
+          if (tabId === 'modules') {
+            handleOpenStudySheet('1.1');
+            return;
+          }
+          if (tabId === 'history') {
+            triggerToast('Riwayat Belajar: Modul 1 Sel Elektrolisis (100% Siap Belajar).');
+            return;
+          }
+          setActiveTab(tabId);
         }}
         onLogout={handleLogout}
       />
 
       {/* 2. Area Konten Utama Dashboard */}
       <main className="dashboard-main">
-        {/* Top Navbar dengan Search Bar Pill & Profil Siswa yang Sedang Login */}
+        {/* Top Navbar dengan Search Bar Pill, Tombol Tanya Guru, Bantuan, & Profil */}
         <TopNavbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onOpenStudySheet={() => handleOpenStudySheet('1.1')}
           studentProfile={studentProfile}
           onLogout={handleLogout}
+          onOpenTeacher={() => setActiveTab('teacher')}
+          onOpenHelp={() => setIsHelpModalOpen(true)}
         />
 
-        {/* Baris 1: Banner Sambutan Peach dengan Nama Siswa yang Login */}
-        <WelcomeBanner
-          studentName={studentProfile.name}
-          onStartLearning={() => handleOpenStudySheet('1.1')}
-        />
-
-        {/* Baris 2: Bagian Belajar Utama Modul 1 (Popular Services Row) */}
-        <LearningCardsRow
-          onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
-          onSeeAll={() => handleOpenStudySheet('1.1')}
-        />
-
-        {/* Baris 3: Other Applications Grid (Kiri) + Chemistry Stats Widget (Kanan) */}
-        <div className="bottom-sections-row">
-          {/* Kiri: Kapsul Modul Lanjutan ("Belum Tersedia") & Aturan Lab */}
-          <QuickAppsGrid
-            onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
-            onLockedClick={(title) =>
-              triggerToast(`${title} bertatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
-            }
+        {/* KONTEN BERDASARKAN TAB AKTIF */}
+        {activeTab === 'teacher' ? (
+          /* Tampilan Menu: Tanya dengan Guru */
+          <AskTeacherView
+            studentProfile={studentProfile}
+            onBackToHome={() => setActiveTab('home')}
+            initialTopic={teacherTopic}
+            onOpenHelp={() => setIsHelpModalOpen(true)}
           />
+        ) : (
+          /* Tampilan Beranda Utama */
+          <>
+            {/* Baris 1: Banner Sambutan Peach dengan Nama Siswa yang Login */}
+            <WelcomeBanner
+              studentName={studentProfile.name}
+              onStartLearning={() => handleOpenStudySheet('1.1')}
+            />
 
-          {/* Kanan: Widget Statistik Kimia (Donut Chart & Metrik Kuantitatif) */}
-          <ChemistryStatsWidget />
-        </div>
+            {/* Baris 2: Bagian Belajar Utama Modul 1 */}
+            <LearningCardsRow
+              onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
+              onSeeAll={() => handleOpenStudySheet('1.1')}
+            />
+
+            {/* Baris 3: Menu Bimbingan (Tanya Guru, Bantuan, Modul Lanjutan) + Statistik Kimia */}
+            <div className="bottom-sections-row">
+              <QuickAppsGrid
+                onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
+                onLockedClick={(title) =>
+                  triggerToast(`${title} berstatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
+                }
+                onOpenTeacher={() => setActiveTab('teacher')}
+                onOpenHelp={() => setIsHelpModalOpen(true)}
+              />
+
+              {/* Kanan: Widget Statistik Kimia */}
+              <ChemistryStatsWidget />
+            </div>
+          </>
+        )}
       </main>
 
       {/* 3. Lembar Kerja Laboratorium Interaktif (Modal View) */}
@@ -167,10 +211,21 @@ function App() {
         <LabSheetModal
           initialSubtopicId={selectedSubtopicId}
           onClose={() => setIsLabSheetOpen(false)}
+          onAskTeacher={handleOpenTeacherWithTopic}
         />
       )}
 
-      {/* 4. Notifikasi Toast untuk Modul Terkunci & Sesi */}
+      {/* 4. Modal Bantuan & Email Pendiri Website (Kelompok 3) */}
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        onOpenTeacherView={() => {
+          setIsHelpModalOpen(false);
+          setActiveTab('teacher');
+        }}
+      />
+
+      {/* 5. Notifikasi Toast Sementara */}
       {toastMessage && (
         <div className="dash-toast" role="alert">
           <Lock size={16} className="dash-toast-icon" />

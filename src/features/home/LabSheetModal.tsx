@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, BookOpen } from 'lucide-react';
+import { X, ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, BookOpen, GraduationCap } from 'lucide-react';
 import { FormulaRenderer } from '../../components/chemistry/FormulaRenderer';
 import { ReactionEquation } from '../../components/chemistry/ReactionEquation';
 
 interface LabSheetModalProps {
   initialSubtopicId?: string;
   onClose: () => void;
+  onAskTeacher?: (topicTitle: string) => void;
 }
 
 /**
@@ -16,6 +17,7 @@ interface LabSheetModalProps {
 export const LabSheetModal: React.FC<LabSheetModalProps> = ({
   initialSubtopicId = '1.1',
   onClose,
+  onAskTeacher,
 }) => {
   const [activeTab, setActiveTab] = useState<string>(initialSubtopicId);
 
@@ -44,14 +46,31 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
             <p className="modal-subtitle">Kimia SMA Kelas 12 • Fase F Kurikulum Merdeka</p>
           </div>
 
-          <button
-            type="button"
-            className="btn-modal-close"
-            onClick={onClose}
-            aria-label="Tutup lembar belajar"
-          >
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            {onAskTeacher && (
+              <button
+                type="button"
+                className="topbar-teacher-pill-btn"
+                onClick={() => {
+                  const currentTab = tabs.find((t) => t.id === activeTab);
+                  onAskTeacher(currentTab ? currentTab.label : 'Sel Elektrolisis');
+                }}
+                title="Tanya Guru Kimia tentang materi bagian ini"
+              >
+                <GraduationCap size={15} />
+                <span>Tanya Guru</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btn-modal-close"
+              onClick={onClose}
+              aria-label="Tutup lembar belajar"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigasi Subtopik */}

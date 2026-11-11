@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, User, LogOut } from 'lucide-react';
+import { Search, Bell, ChevronDown, User, LogOut, GraduationCap, HelpCircle } from 'lucide-react';
 import type { StudentProfile } from '../auth/LoginScreen';
 
 interface TopNavbarProps {
@@ -8,11 +8,13 @@ interface TopNavbarProps {
   onOpenStudySheet: () => void;
   studentProfile: StudentProfile;
   onLogout?: () => void;
+  onOpenTeacher?: () => void;
+  onOpenHelp?: () => void;
 }
 
 /**
  * TopNavbar bergaya pill rounded seperti gambar referensi.
- * Menampilkan pencarian konsep kimia, notifikasi materi, dan profil siswa yang sedang login.
+ * Menampilkan pencarian konsep kimia, shortcut Tanya Guru, Bantuan, notifikasi materi, dan profil siswa yang sedang login.
  */
 export const TopNavbar: React.FC<TopNavbarProps> = ({
   searchQuery,
@@ -20,6 +22,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenStudySheet,
   studentProfile,
   onLogout,
+  onOpenTeacher,
+  onOpenHelp,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
@@ -47,8 +51,35 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         />
       </div>
 
-      {/* Sisi Kanan: Notifikasi & Profil Siswa Login */}
+      {/* Sisi Kanan: Tanya Guru, Bantuan, Notifikasi & Profil Siswa Login */}
       <div className="topbar-right">
+        {/* Tombol Cepat Tanya Guru */}
+        {onOpenTeacher && (
+          <button
+            type="button"
+            className="topbar-teacher-pill-btn"
+            onClick={onOpenTeacher}
+            title="Tanya dengan Guru Kimia (3 Guru Online)"
+          >
+            <GraduationCap size={16} />
+            <span>Tanya Guru</span>
+            <span className="teacher-btn-dot" />
+          </button>
+        )}
+
+        {/* Tombol Bantuan & Kontak Pendiri */}
+        {onOpenHelp && (
+          <button
+            type="button"
+            className="notification-pill-btn"
+            title="Bantuan & Email Pendiri Website"
+            aria-label="Bantuan & Email Pendiri"
+            onClick={onOpenHelp}
+          >
+            <HelpCircle size={18} />
+          </button>
+        )}
+
         {/* Tombol Notifikasi */}
         <button
           type="button"
@@ -107,6 +138,32 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <User size={16} />
                 <span>Buka Lembar Kerja Belajar</span>
               </button>
+              {onOpenTeacher && (
+                <button
+                  type="button"
+                  className="dropdown-menu-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onOpenTeacher();
+                  }}
+                >
+                  <GraduationCap size={16} />
+                  <span>Tanya dengan Guru Kimia</span>
+                </button>
+              )}
+              {onOpenHelp && (
+                <button
+                  type="button"
+                  className="dropdown-menu-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onOpenHelp();
+                  }}
+                >
+                  <HelpCircle size={16} />
+                  <span>Bantuan & Email Pendiri</span>
+                </button>
+              )}
               {onLogout && (
                 <button
                   type="button"

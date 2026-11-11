@@ -1,21 +1,60 @@
 import React from 'react';
-import { Lock, Sparkles, BookOpen, Calculator, Layers, Award } from 'lucide-react';
+import { Lock, Sparkles, BookOpen, Calculator, Layers, Award, GraduationCap, HelpCircle } from 'lucide-react';
 
 interface QuickAppsGridProps {
   onOpenStudySheet: (subtopicId?: string) => void;
   onLockedClick: (title: string) => void;
+  onOpenTeacher?: () => void;
+  onOpenHelp?: () => void;
 }
 
 /**
  * QuickAppsGrid: Mengikuti section "Other applications" pada gambar referensi.
- * Menampilkan grid 2 kolom dari kapsul modul lanjutan ("Belum Tersedia")
- * dan pedoman laboratorium aktif.
+ * Menampilkan grid 2 kolom dari modul, pedoman laboratorium, Tanya Guru, dan Bantuan.
  */
 export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
   onOpenStudySheet,
   onLockedClick,
+  onOpenTeacher,
+  onOpenHelp,
 }) => {
   const items = [
+    {
+      id: 'teacher-ask',
+      label: 'Tanya dengan Guru',
+      icon: GraduationCap,
+      badgeText: '3 Guru Online',
+      badgeClass: 'badge-pro',
+      locked: false,
+      isTeacherAction: true,
+    },
+    {
+      id: 'help-founders',
+      label: 'Bantuan & Email Pendiri',
+      icon: HelpCircle,
+      badgeText: 'Kelompok 3',
+      badgeClass: 'badge-gold',
+      locked: false,
+      isHelpAction: true,
+    },
+    {
+      id: 'krao',
+      label: 'Aturan Emas KRAO',
+      icon: BookOpen,
+      badgeText: 'Pedoman',
+      badgeClass: 'badge-gold',
+      locked: false,
+      targetSubtopic: '1.1',
+    },
+    {
+      id: 'panic',
+      label: 'Mnemonik PANIC',
+      icon: BookOpen,
+      badgeText: 'Fase F',
+      badgeClass: 'badge-pro',
+      locked: false,
+      targetSubtopic: '1.2',
+    },
     {
       id: 'ch2',
       label: 'Bab 2: Rangkaian & Ion',
@@ -48,30 +87,24 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
       badgeClass: 'badge-locked',
       locked: true,
     },
-    {
-      id: 'krao',
-      label: 'Aturan Emas KRAO',
-      icon: BookOpen,
-      badgeText: 'Pedoman',
-      badgeClass: 'badge-gold',
-      locked: false,
-      targetSubtopic: '1.1',
-    },
-    {
-      id: 'panic',
-      label: 'Mnemonik PANIC',
-      icon: BookOpen,
-      badgeText: 'Fase F',
-      badgeClass: 'badge-pro',
-      locked: false,
-      targetSubtopic: '1.2',
-    },
   ];
+
+  const handleItemClick = (item: typeof items[0]) => {
+    if (item.locked) {
+      onLockedClick(item.label);
+    } else if (item.isTeacherAction && onOpenTeacher) {
+      onOpenTeacher();
+    } else if (item.isHelpAction && onOpenHelp) {
+      onOpenHelp();
+    } else if (item.targetSubtopic) {
+      onOpenStudySheet(item.targetSubtopic);
+    }
+  };
 
   return (
     <div>
       <div className="section-header-row">
-        <h3 className="section-main-heading">Rencana Modul & Referensi Lab</h3>
+        <h3 className="section-main-heading">Menu Bimbingan & Rencana Modul</h3>
       </div>
 
       <div className="capsule-apps-grid">
@@ -82,19 +115,12 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
             <div
               key={item.id}
               className={`capsule-app-card ${item.locked ? 'locked-app' : 'interactive-app'}`}
-              onClick={() => {
-                if (item.locked) {
-                  onLockedClick(item.label);
-                } else if (item.targetSubtopic) {
-                  onOpenStudySheet(item.targetSubtopic);
-                }
-              }}
+              onClick={() => handleItemClick(item)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  if (item.locked) onLockedClick(item.label);
-                  else if (item.targetSubtopic) onOpenStudySheet(item.targetSubtopic);
+                  handleItemClick(item);
                 }
               }}
               title={item.locked ? `${item.label} (Belum Tersedia)` : `Buka ${item.label}`}
