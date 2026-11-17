@@ -1553,3 +1553,317 @@
   color: #ef4444;
 }
 
+
+/* --------------------------------------------------------------------------
+   Enhanced Cek Pemahaman & Interactive True-False Table Styles
+   -------------------------------------------------------------------------- */
+.quiz-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quiz-score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: var(--primary-600);
+  color: #ffffff;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.quiz-question-box {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition-fast);
+}
+
+.quiz-question-box:hover {
+  border-color: var(--border-hover);
+}
+
+.q-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.q-number-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary-700);
+  background-color: var(--primary-100);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.q-topic-tag {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.q-prompt-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.q-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.q-option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  background-color: var(--bg-subtle);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 1.5;
+}
+
+.q-option-item:hover {
+  background-color: #e2e8f0;
+  border-color: var(--border-hover);
+}
+
+.q-option-item.selected-correct {
+  background-color: var(--status-success-bg);
+  border-color: var(--status-success);
+  color: var(--status-success-text);
+  font-weight: 600;
+}
+
+.q-option-item.selected-wrong {
+  background-color: var(--anode-bg);
+  border-color: var(--anode-main);
+  color: var(--anode-text);
+}
+
+.option-badge-key {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  margin-top: 0.1rem;
+}
+
+.q-option-item.selected-correct .option-badge-key {
+  background-color: var(--status-success);
+  color: #ffffff;
+  border-color: var(--status-success);
+}
+
+.q-option-item.selected-wrong .option-badge-key {
+  background-color: var(--anode-main);
+  color: #ffffff;
+  border-color: var(--anode-main);
+}
+
+/* Penjelasan Lengkap (Explanation Box) */
+.q-explanation-panel {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-top: 1rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.q-explanation-panel.feedback-correct {
+  border-left: 4px solid var(--status-success);
+  background-color: #f0fdf4;
+}
+
+.q-explanation-panel.feedback-incorrect {
+  border-left: 4px solid var(--anode-accent);
+  background-color: #fff7ed;
+}
+
+.explanation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.feedback-correct .explanation-header {
+  color: #166534;
+}
+
+.feedback-incorrect .explanation-header {
+  color: #9a3412;
+}
+
+.explanation-steps {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.explanation-steps ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.explanation-steps li {
+  margin-bottom: 0.35rem;
+}
+
+.formula-step-code {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin: 0.4rem 0;
+  color: var(--primary-800, #075985);
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Tabel Interaktif Benar-Salah (Soal 4)
+   -------------------------------------------------------------------------- */
+.tf-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.25rem;
+}
+
+.tf-interactive-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.tf-interactive-table th {
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tf-interactive-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.tf-interactive-table tr:last-child td {
+  border-bottom: none;
+}
+
+.tf-interactive-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.tf-statement-col {
+  line-height: 1.5;
+}
+
+.tf-statement-num {
+  font-weight: 700;
+  color: var(--primary-700);
+  margin-right: 0.5rem;
+}
+
+.tf-actions-col {
+  text-align: center;
+  width: 130px;
+}
+
+.tf-btn-group {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.tf-toggle-btn {
+  padding: 0.35rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background-color: #ffffff;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tf-toggle-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.tf-toggle-btn.active-true {
+  background-color: var(--status-success);
+  border-color: var(--status-success);
+  color: #ffffff;
+}
+
+.tf-toggle-btn.active-false {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.tf-row-feedback {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tf-row-feedback.correct-text {
+  color: #15803d;
+}
+
+.tf-row-feedback.wrong-text {
+  color: #b91c1c;
+}
