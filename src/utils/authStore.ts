@@ -162,22 +162,24 @@ export const authStore = {
     if (!found) {
       return {
         success: false,
+        message: `Akun dengan nama / email / username "${identifier}" belum terdaftar sebagai ${
+          role === 'student' ? 'Siswa' : 'Guru'
         }. Silakan klik tab 'Daftar' untuk membuat akun baru.`,
       };
-  }
-
-    if(found.password !== password) {
-    return {
-      success: false,
-      message: 'Kata sandi tidak sesuai. Silakan periksa kembali kata sandi Anda.',
-    };
     }
 
-return {
-  success: true,
-  message: 'Berhasil masuk!',
-  account: found,
-};
+    if (found.password !== password) {
+      return {
+        success: false,
+        message: 'Kata sandi tidak sesuai. Silakan periksa kembali kata sandi Anda.',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Berhasil masuk!',
+      account: found,
+    };
   },
 
 /**
