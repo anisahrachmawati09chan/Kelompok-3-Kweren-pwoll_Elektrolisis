@@ -1,0 +1,756 @@
+/* ==========================================================================
+   ChemVerse - Interactive Electrolysis Cell Simulation Styles
+   High-contrast academic UI with vibrant Katode (Cyan/Blue) & Anode (Orange/Red)
+   ========================================================================== */
+
+.sim-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  animation: simFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes simFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Header & Kicker
+   -------------------------------------------------------------------------- */
+.sim-header-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.25rem 1.5rem;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sim-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sim-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sim-kicker {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.sim-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sim-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.sim-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+}
+
+.sim-status-pill.is-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+}
+
+.sim-status-pill.is-paused {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.is-active .status-dot {
+  animation: simPulse 1.4s infinite;
+}
+
+@keyframes simPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Layout: Visual Stage (Top/Left) & Controls (Right)
+   -------------------------------------------------------------------------- */
+.sim-main-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .sim-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Visual Stage
+   -------------------------------------------------------------------------- */
+.sim-stage-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.sim-stage-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sim-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-sim-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sim-play {
+  background: #0284c7;
+  color: white;
+}
+
+.btn-sim-play:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-sim-play.active {
+  background: #f59e0b;
+}
+
+.btn-sim-play.active:hover {
+  background: #d97706;
+}
+
+.btn-sim-reset {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.btn-sim-reset:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.sim-voltage-slider-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.slider-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.slider-value {
+  color: #0284c7;
+  font-weight: 800;
+}
+
+.sim-range-input {
+  width: 90px;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Stage Canvas / SVG Area
+   -------------------------------------------------------------------------- */
+.sim-stage-viewport {
+  width: 100%;
+  min-height: 380px;
+  background: radial-gradient(circle at 50% 30%, #f8fafc 0%, #edf2f7 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sim-svg-stage {
+  width: 100%;
+  height: 100%;
+  max-height: 420px;
+  display: block;
+}
+
+/* Telemetry overlay */
+.sim-telemetry-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  color: white;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.telemetry-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.telemetry-label {
+  color: #94a3b8;
+}
+
+.telemetry-val {
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+/* Interactive Switch toggle button */
+.sim-switch-interactive {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.sim-switch-interactive:hover {
+  filter: drop-shadow(0 0 6px #f59e0b);
+}
+
+/* --------------------------------------------------------------------------
+   Controls & Variables Panel (Right Column)
+   -------------------------------------------------------------------------- */
+.sim-options-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim-option-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.opt-section-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.opt-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.45rem;
+}
+
+.opt-btn-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.opt-btn-choice:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.opt-btn-choice.selected {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 1px #0284c7;
+}
+
+.opt-btn-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.opt-btn-desc {
+  font-size: 0.6875rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+/* Solution Selector Pill */
+.solution-dropdown-wrap {
+  position: relative;
+}
+
+.solution-select-native {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.solution-select-native:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.solution-chips-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.solution-chip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.18s ease;
+}
+
+.solution-chip-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.solution-chip-item.active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.chip-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* Dual Electrodes Grid */
+.electrodes-duo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .electrodes-duo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.electrode-selector-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.65rem;
+  border-radius: 10px;
+}
+
+.box-katode {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.box-anode {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.electrode-box-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.title-katode {
+  color: #0369a1;
+}
+
+.title-anode {
+  color: #c2410c;
+}
+
+.electrode-badge-tag {
+  font-size: 0.625rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.tag-katode {
+  background: #0284c7;
+  color: white;
+}
+
+.tag-anode {
+  background: #ea580c;
+  color: white;
+}
+
+.electrode-select-input {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Information & Reaction Display Section (Full Width Below)
+   -------------------------------------------------------------------------- */
+.sim-reactions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim-reactions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .sim-reactions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reaction-card {
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.card-katode-reaction {
+  background: #eff6ff;
+  border: 2px solid #93c5fd;
+}
+
+.card-anode-reaction {
+  background: #fff7ed;
+  border: 2px solid #fdba74;
+}
+
+.reaction-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 0.5rem;
+}
+
+.rx-role-pill {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.pill-katode {
+  background: #2563eb;
+  color: white;
+}
+
+.pill-anode {
+  background: #dc2626;
+  color: white;
+}
+
+.rx-product-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.rx-equation-box {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card-katode-reaction .rx-equation-box {
+  color: #1d4ed8;
+  border-left: 4px solid #2563eb;
+}
+
+.card-anode-reaction .rx-equation-box {
+  color: #b91c1c;
+  border-left: 4px solid #dc2626;
+}
+
+.rx-observation-box {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.rx-observation-title {
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+}
+
+/* Total Reaction Banner */
+.total-reaction-card {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.25rem 1.5rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 0 6px 16px rgba(30, 27, 75, 0.18);
+}
+
+.total-rx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-rx-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.total-rx-equation {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.total-rx-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.industrial-app-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #fde047;
+  font-weight: 700;
+}
+
+/* Quick Experiment Guide Card */
+.sim-guide-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg, 16px);
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.guide-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.guide-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.guide-chip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.78125rem;
+  color: #475569;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guide-chip:hover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.guide-chip-title {
+  font-weight: 800;
+  color: #0f172a;
+  display: block;
+  margin-bottom: 0.2rem;
+}

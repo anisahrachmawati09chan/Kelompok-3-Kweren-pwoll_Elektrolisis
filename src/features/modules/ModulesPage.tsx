@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CHAPTERS_DATA } from '../../data/courseData';
+import { ElectrolysisSimulator } from '../simulation/ElectrolysisSimulator';
 import {
   BookOpen,
   Lock,
@@ -535,19 +536,32 @@ const ChapterOneContent: React.FC<{ onOpenStudySheet: (id: string) => void }> = 
       </div>
     </section>
 
+    {/* ---- E. Simulasi Interaktif Bergerak Sel Elektrolisis ---- */}
+    <section className="material-section">
+      <div className="material-section-header">
+        <span className="material-section-num">E</span>
+        <h3>Simulasi Interaktif: Sel Elektrolisis Dinamis (Laboratorium Virtual)</h3>
+      </div>
+      <p className="material-para">
+        Gunakan laboratorium virtual di bawah ini untuk mengamati secara mikroskopis aliran elektron pada kawat luar,
+        migrasi ion di dalam larutan, serta perubahan fisik di permukaan elektroda katoda dan anoda.
+      </p>
+      <ElectrolysisSimulator />
+    </section>
+
     {/* CTA ke LabSheet */}
     <div className="material-cta-box">
       <Zap size={20} className="cta-icon" />
       <div>
-        <strong>Latihan Interaktif Tersedia!</strong>
-        <p>Buka Lembar Kerja Siswa untuk latihan soal, tabel komparasi, dan cek pemahaman langsung.</p>
+        <strong>Lembar Kerja &amp; Latihan Soal Lengkap</strong>
+        <p>Buka Lembar Kerja Siswa untuk menguji pemahaman dengan bank soal kurikulum dan pratinjau simulator.</p>
       </div>
       <button
         type="button"
         className="btn-open-lab"
-        onClick={() => onOpenStudySheet('1.1')}
+        onClick={() => onOpenStudySheet('1.5')}
       >
-        Buka Lembar Kerja <ArrowRight size={14} />
+        Buka Simulasi Penuh <ArrowRight size={14} />
       </button>
     </div>
   </div>

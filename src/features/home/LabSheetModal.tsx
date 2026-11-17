@@ -9,9 +9,11 @@ import {
   Award,
   RotateCcw,
   Sparkles,
+  Zap,
 } from 'lucide-react';
 import { FormulaRenderer } from '../../components/chemistry/FormulaRenderer';
 import { ReactionEquation } from '../../components/chemistry/ReactionEquation';
+import { ElectrolysisSimulator } from '../simulation/ElectrolysisSimulator';
 import type { QuizQuestion } from '../../data/questionsData';
 import { DEFAULT_QUESTIONS } from '../../data/questionsData';
 
@@ -113,6 +115,7 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
     { id: '1.2', label: '1.2 Volta vs Elektrolisis' },
     { id: '1.3', label: '1.3 Komponen Sel' },
     { id: '1.4', label: `1.4 Cek Pemahaman (${questions.length} Soal)` },
+    { id: '1.5', label: '1.5 Simulasi Sel Elektrolisis ⚡' },
   ];
 
   return (
@@ -667,6 +670,15 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
                   <button
                     type="button"
                     className="btn btn-primary btn-lg"
+                    style={{ background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)' }}
+                    onClick={() => setActiveTab('1.5')}
+                  >
+                    <Zap size={18} />
+                    <span>Lanjut: Uji Coba Simulasi Interaktif ⚡</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-lg"
                     onClick={onClose}
                   >
                     <CheckCircle2 size={18} />
@@ -681,6 +693,38 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
                     <span>Ulangi Seluruh Soal</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* BAGIAN 1.5: SIMULASI INTERAKTIF BERGERAK SEL ELEKTROLISIS */}
+          {activeTab === '1.5' && (
+            <div className="lab-sheet-view" style={{ maxWidth: '1060px', margin: '0 auto', width: '100%' }}>
+              <div className="sheet-section-title">
+                <span className="part-number" style={{ background: '#0284c7', color: 'white' }}>Bagian 1.5</span>
+                <h3>Simulasi Interaktif: Sel Elektrolisis Dinamis</h3>
+              </div>
+
+              <ElectrolysisSimulator />
+
+              {/* Navigasi Footer Tab */}
+              <div className="modal-step-nav-split" style={{ marginTop: '2rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setActiveTab('1.4')}
+                >
+                  <ArrowLeft size={16} />
+                  <span>Kembali ke 1.4: Cek Pemahaman</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onClose}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Selesai &amp; Tutup Lembar Belajar</span>
+                </button>
               </div>
             </div>
           )}

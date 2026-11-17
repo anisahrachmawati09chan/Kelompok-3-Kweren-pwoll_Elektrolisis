@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Scale, FlaskConical, CheckSquare } from 'lucide-react';
+import { Zap, Scale, FlaskConical, CheckSquare, Sparkles } from 'lucide-react';
 
 interface LearningCardsRowProps {
   onSelectSubtopic: (subtopicId: string) => void;
@@ -58,6 +58,16 @@ export const LearningCardsRow: React.FC<LearningCardsRowProps> = ({
       icon: CheckSquare,
       progressPercent: 100,
       metricLabel: '4 Soal Siap',
+    },
+    {
+      id: '1.5',
+      title: '1.5 Simulasi Interaktif',
+      category: 'Visualisasi Bergerak Elektron & Ion',
+      theme: 'theme-purple',
+      fillClass: 'fill-purple',
+      icon: Sparkles,
+      progressPercent: 100,
+      metricLabel: 'Lab Virtual ⚡',
     },
   ];
 
