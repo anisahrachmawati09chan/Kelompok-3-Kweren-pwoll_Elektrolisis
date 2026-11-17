@@ -6,6 +6,7 @@ import { LearningCardsRow } from './components/dashboard/LearningCardsRow';
 import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
+import { HelpCenterModal } from './features/help/HelpCenterModal';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { TeacherDashboard } from './features/teacher/TeacherDashboard';
 import type { UserProfile, StudentRecord } from './utils/studentRecords';
@@ -57,6 +58,9 @@ function App() {
   // State modal lembar kerja laboratorium Modul 1
   const [isLabSheetOpen, setIsLabSheetOpen] = useState<boolean>(false);
   const [selectedSubtopicId, setSelectedSubtopicId] = useState<string>('1.1');
+
+  // State modal Pusat Bantuan (FAQ, XP, Reset, dsb)
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
 
   // State notifikasi toast melayang
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -210,6 +214,23 @@ function App() {
     }
   };
 
+  /**
+   * Handler Siswa: Reset Progres Jawaban Kuis
+   */
+  const handleResetStudentProgress = () => {
+    if (userProfile && userProfile.role === 'student') {
+      const updated = studentRecordStore.resetScore(userProfile.name);
+      setStudents(updated);
+      if (isFirebaseConfigured) {
+        const currentStudent = updated.find((s) => s.name === userProfile.name);
+        if (currentStudent) {
+          firebaseService.saveStudentToCloud(currentStudent);
+        }
+      }
+      triggerToast('Progres latihan kuis Anda berhasil direset ke awal.');
+    }
+  };
+
   const handleOpenStudySheet = (subtopicId: string = '1.1') => {
     setSelectedSubtopicId(subtopicId);
     setIsLabSheetOpen(true);
@@ -276,7 +297,7 @@ function App() {
           }
           setActiveTab(tabId);
           if (tabId === 'help') {
-            handleOpenStudySheet('1.1');
+            setIsHelpModalOpen(true);
           }
         }}
         onLogout={handleLogout}
@@ -331,7 +352,15 @@ function App() {
         />
       )}
 
-      {/* 4. Notifikasi Toast */}
+      {/* 4. Modal Pusat Bantuan (FAQ, XP, Reset Progress, Tutorial, Kontak) */}
+      <HelpCenterModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        onResetProgress={handleResetStudentProgress}
+        studentName={userProfile?.name}
+      />
+
+      {/* 5. Notifikasi Toast */}
       {toastMessage && (
         <div className="dash-toast" role="alert">
           <Lock size={16} className="dash-toast-icon" />
