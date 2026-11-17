@@ -16,10 +16,6 @@ export type ElectrolyteId =
 
 export type ElectrodeId = 'C' | 'Pt' | 'Au' | 'Cu' | 'Zn' | 'Ag' | 'Fe';
 
-export type CellContainerType = 'single' | 'salt_bridge' | 'porous_pot';
-
-export type SaltBridgeSalt = 'KNO3' | 'Na2SO4' | 'KCl';
-
 export interface ElectrolyteInfo {
   id: ElectrolyteId;
   name: string;
@@ -236,9 +232,7 @@ export const ELECTRODES: Record<ElectrodeId, ElectrodeInfo> = {
 export function calculateElectrolysisReactions(
   electrolyteId: ElectrolyteId,
   cathodeId: ElectrodeId,
-  anodeId: ElectrodeId,
-  containerType: CellContainerType = 'single',
-  saltBridgeSalt: SaltBridgeSalt = 'KNO3'
+  anodeId: ElectrodeId
 ): ElectrolysisReactionResult {
   const electrolyte = ELECTROLYTES[electrolyteId];
   const anode = ELECTRODES[anodeId];
@@ -441,28 +435,22 @@ export function calculateElectrolysisReactions(
   let solutionObservation = '';
   let industrialApplicationNote = '';
 
-  if (containerType === 'salt_bridge') {
-    solutionObservation = `Dua kompartemen terhubung jembatan garam ${saltBridgeSalt}. Kation garam bergerak ke kompartemen katoda dan anion ke kompartemen anoda untuk menjaga netralitas listrik larutan.`;
-  } else if (containerType === 'porous_pot') {
-    solutionObservation = 'Sekat berpori (membran) mencegah percampuran cepat larutan tanpa menghalangi migrasi ion-ion mikro penghantar arus.';
-  } else {
-    if (electrolyteId === 'cuso4') {
-      if (anodeId === 'Cu') {
-        solutionObservation = 'Warna biru larutan CuSO₄ tetap konstan karena laju pelarutan Cu di anode sama persis dengan laju pengendapan Cu di katode.';
-        industrialApplicationNote = 'Aplikasi Industri: Prinsip dasar Electroplating (Penyepuhan) dan Electrorefining (Pemurnian Tembaga Kasar 99,99%).';
-      } else {
-        solutionObservation = 'Warna biru larutan perlahan memudar seiring berkurangnya ion Cu²⁺, dan larutan berubah menjadi semakin asam karena menghasilkan H⁺.';
-        industrialApplicationNote = 'Aplikasi Industri: Elektrowinning tembaga dari bijih tambang.';
-      }
-    } else if (electrolyteId === 'nacl_aq') {
-      solutionObservation = 'Menghasilkan larutan basa kuat NaOH di katoda serta membebaskan dua gas industri vital (H₂ dan Cl₂).';
-      industrialApplicationNote = 'Aplikasi Industri: Proses Klor-Alkali berskala raksasa untuk produksi sabun, kertas, dan desinfektan.';
-    } else if (electrolyteId === 'nacl_molten') {
-      solutionObservation = 'Berlangsung pada sel tertutup tanpa pelarut air untuk mencegah reaksi hidrogen.';
-      industrialApplicationNote = 'Aplikasi Industri: Proses Downs untuk mengekstrak logam reaktif Natrium murni.';
+  if (electrolyteId === 'cuso4') {
+    if (anodeId === 'Cu') {
+      solutionObservation = 'Warna biru larutan CuSO₄ tetap konstan karena laju pelarutan Cu di anode sama persis dengan laju pengendapan Cu di katode.';
+      industrialApplicationNote = 'Aplikasi Industri: Prinsip dasar Electroplating (Penyepuhan) dan Electrorefining (Pemurnian Tembaga Kasar 99,99%).';
     } else {
-      solutionObservation = 'Reaksi elektrokimia non-spontan digerakkan sepenuhnya oleh suplai energi listrik arus searah (DC).';
+      solutionObservation = 'Warna biru larutan perlahan memudar seiring berkurangnya ion Cu²⁺, dan larutan berubah menjadi semakin asam karena menghasilkan H⁺.';
+      industrialApplicationNote = 'Aplikasi Industri: Elektrowinning tembaga dari bijih tambang.';
     }
+  } else if (electrolyteId === 'nacl_aq') {
+    solutionObservation = 'Menghasilkan larutan basa kuat NaOH di sekitar katoda serta membebaskan gas H₂ (di katoda) dan gas Cl₂ (di anoda).';
+    industrialApplicationNote = 'Aplikasi Industri: Proses Klor-Alkali berskala besar untuk produksi sabun, kertas, dan desinfektan.';
+  } else if (electrolyteId === 'nacl_molten') {
+    solutionObservation = 'Berlangsung pada bejana sel elektrolisis lelehan cair suhu tinggi tanpa pelarut air untuk mencegah reduksi air.';
+    industrialApplicationNote = 'Aplikasi Industri: Proses Downs untuk mengekstrak logam reaktif Natrium murni.';
+  } else {
+    solutionObservation = 'Reaksi elektrokimia non-spontan digerakkan sepenuhnya oleh suplai energi listrik arus searah (DC).';
   }
 
   return {

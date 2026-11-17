@@ -4,7 +4,6 @@ import {
   Pause,
   RotateCcw,
   Zap,
-  Layers,
   Sparkles,
   Info,
   CheckCircle2,
@@ -18,8 +17,6 @@ import {
   calculateElectrolysisReactions,
   type ElectrolyteId,
   type ElectrodeId,
-  type CellContainerType,
-  type SaltBridgeSalt,
 } from './electrolysisRules';
 import './simulation.css';
 
@@ -46,8 +43,6 @@ interface IonParticle {
 
 export const ElectrolysisSimulator: React.FC = () => {
   // 1. Simulation Variable States
-  const [containerType, setContainerType] = useState<CellContainerType>('single');
-  const [saltBridgeSalt, setSaltBridgeSalt] = useState<SaltBridgeSalt>('KNO3');
   const [electrolyteId, setElectrolyteId] = useState<ElectrolyteId>('cuso4');
   const [cathodeId, setCathodeId] = useState<ElectrodeId>('C');
   const [anodeId, setAnodeId] = useState<ElectrodeId>('Cu');
@@ -73,9 +68,7 @@ export const ElectrolysisSimulator: React.FC = () => {
   const reaction = calculateElectrolysisReactions(
     electrolyteId,
     cathodeId,
-    anodeId,
-    containerType,
-    saltBridgeSalt
+    anodeId
   );
 
   const electrolyte = ELECTROLYTES[electrolyteId];
@@ -121,7 +114,7 @@ export const ElectrolysisSimulator: React.FC = () => {
     setDepositGrowth(1.5);
     setAnodeErosion(0);
     setSimTime(0);
-  }, [electrolyteId, containerType]);
+  }, [electrolyteId]);
 
   // Handle Switch Toggle
   const toggleSwitch = () => {
@@ -268,22 +261,18 @@ export const ElectrolysisSimulator: React.FC = () => {
       setElectrolyteId('cuso4');
       setCathodeId('C');
       setAnodeId('Cu');
-      setContainerType('single');
     } else if (preset === 'chloralkali') {
       setElectrolyteId('nacl_aq');
       setCathodeId('C');
       setAnodeId('C');
-      setContainerType('porous_pot');
     } else if (preset === 'water_split') {
       setElectrolyteId('h2so4');
       setCathodeId('Pt');
       setAnodeId('Pt');
-      setContainerType('single');
     } else if (preset === 'downs') {
       setElectrolyteId('nacl_molten');
       setCathodeId('Fe');
       setAnodeId('C');
-      setContainerType('single');
     }
     setIsRunning(true);
     setIsSwitchClosed(true);
@@ -557,85 +546,31 @@ export const ElectrolysisSimulator: React.FC = () => {
               )}
 
               {/* ----------------------------------------------------
-                  3. ELECTROLYTIC CELL CONTAINER (Glassware)
+                  3. ELECTROLYTIC CELL CONTAINER (Gelas Kimia)
               ---------------------------------------------------- */}
-              {containerType === 'single' ? (
-                // Single Beaker Setup
-                <g>
-                  {/* Liquid inside beaker */}
-                  <rect x="75" y="200" width="270" height="150" rx="4" fill="url(#liquidGradSingle)" />
-                  <ellipse cx="210" cy="200" rx="135" ry="8" fill={electrolyte.color} opacity="0.7" />
+              <g>
+                {/* Liquid inside beaker */}
+                <rect x="75" y="200" width="270" height="150" rx="4" fill="url(#liquidGradSingle)" />
+                <ellipse cx="210" cy="200" rx="135" ry="8" fill={electrolyte.color} opacity="0.7" />
 
-                  {/* Glass Beaker Body */}
-                  <rect x="75" y="170" width="270" height="180" rx="14" fill="none" stroke="#94a3b8" strokeWidth="3.5" />
-                  <rect x="75" y="170" width="270" height="180" rx="14" fill="url(#glassReflection)" />
+                {/* Glass Beaker Body */}
+                <rect x="75" y="170" width="270" height="180" rx="14" fill="none" stroke="#94a3b8" strokeWidth="3.5" />
+                <rect x="75" y="170" width="270" height="180" rx="14" fill="url(#glassReflection)" />
 
-                  {/* Volume Graduation ticks */}
-                  <line x1="80" y1="230" x2="95" y2="230" stroke="#64748b" strokeWidth="1.5" />
-                  <text x="100" y="233" fill="#64748b" fontSize="8">300 mL</text>
-                  <line x1="80" y1="265" x2="95" y2="265" stroke="#64748b" strokeWidth="1.5" />
-                  <text x="100" y="268" fill="#64748b" fontSize="8">200 mL</text>
-                  <line x1="80" y1="300" x2="95" y2="300" stroke="#64748b" strokeWidth="1.5" />
-                  <text x="100" y="303" fill="#64748b" fontSize="8">100 mL</text>
+                {/* Volume Graduation ticks */}
+                <line x1="80" y1="230" x2="95" y2="230" stroke="#64748b" strokeWidth="1.5" />
+                <text x="100" y="233" fill="#64748b" fontSize="8">300 mL</text>
+                <line x1="80" y1="265" x2="95" y2="265" stroke="#64748b" strokeWidth="1.5" />
+                <text x="100" y="268" fill="#64748b" fontSize="8">200 mL</text>
+                <line x1="80" y1="300" x2="95" y2="300" stroke="#64748b" strokeWidth="1.5" />
+                <text x="100" y="303" fill="#64748b" fontSize="8">100 mL</text>
 
-                  {/* Solution Label at bottom */}
-                  <rect x="135" y="325" width="150" height="18" rx="4" fill="rgba(15, 23, 42, 0.75)" />
-                  <text x="210" y="337" fill="#f8fafc" fontSize="9" fontWeight="bold" textAnchor="middle">
-                    {electrolyte.name}
-                  </text>
-                </g>
-              ) : containerType === 'salt_bridge' ? (
-                // Dual Beakers with U-tube Salt Bridge
-                <g>
-                  {/* Left Beaker (Cathode) */}
-                  <rect x="65" y="205" width="130" height="145" rx="8" fill="url(#liquidGradSingle)" />
-                  <rect x="65" y="175" width="130" height="175" rx="10" fill="none" stroke="#94a3b8" strokeWidth="3" />
-                  <text x="130" y="335" fill="#0369a1" fontSize="8" fontWeight="bold" textAnchor="middle">
-                    Kompartemen Katoda
-                  </text>
-
-                  {/* Right Beaker (Anode) */}
-                  <rect x="225" y="205" width="130" height="145" rx="8" fill="url(#liquidGradSingle)" />
-                  <rect x="225" y="175" width="130" height="175" rx="10" fill="none" stroke="#94a3b8" strokeWidth="3" />
-                  <text x="290" y="335" fill="#c2410c" fontSize="8" fontWeight="bold" textAnchor="middle">
-                    Kompartemen Anoda
-                  </text>
-
-                  {/* Inverted U-tube Salt Bridge */}
-                  <path
-                    d="M 175 270 L 175 195 Q 175 180 195 180 L 225 180 Q 245 180 245 195 L 245 270"
-                    fill="none"
-                    stroke="#fed7aa"
-                    strokeWidth="16"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 175 270 L 175 195 Q 175 180 195 180 L 225 180 Q 245 180 245 195 L 245 270"
-                    fill="none"
-                    stroke="#f97316"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <rect x="180" y="165" width="60" height="14" rx="4" fill="#0f172a" />
-                  <text x="210" y="175" fill="#fde047" fontSize="8" fontWeight="bold" textAnchor="middle">
-                    Jembatan {saltBridgeSalt}
-                  </text>
-                </g>
-              ) : (
-                // Porous Membrane (Sekat Berpori)
-                <g>
-                  {/* Single Beaker Container */}
-                  <rect x="75" y="200" width="270" height="150" rx="4" fill="url(#liquidGradSingle)" />
-                  <rect x="75" y="170" width="270" height="180" rx="14" fill="none" stroke="#94a3b8" strokeWidth="3.5" />
-
-                  {/* Porous Membrane Partition in Middle */}
-                  <line x1="210" y1="180" x2="210" y2="348" stroke="#0f172a" strokeWidth="4" strokeDasharray="5,4" />
-                  <rect x="175" y="156" width="70" height="15" rx="3" fill="#1e293b" />
-                  <text x="210" y="167" fill="#38bdf8" fontSize="8" fontWeight="bold" textAnchor="middle">
-                    Sekat Berpori
-                  </text>
-                </g>
-              )}
+                {/* Solution Label at bottom */}
+                <rect x="120" y="325" width="180" height="18" rx="4" fill="rgba(15, 23, 42, 0.75)" />
+                <text x="210" y="337" fill="#f8fafc" fontSize="9" fontWeight="bold" textAnchor="middle">
+                  {electrolyte.name}
+                </text>
+              </g>
 
               {/* ----------------------------------------------------
                   4. ELECTRODES (Katode Left, Anode Right)
@@ -770,74 +705,11 @@ export const ElectrolysisSimulator: React.FC = () => {
 
         {/* Right Column: Controls & Variable Selection Panel */}
         <div className="sim-options-panel">
-          {/* Card A: Pilihan Wadah / Jembatan */}
-          <div className="sim-option-card">
-            <h4 className="opt-section-title">
-              <Layers size={14} className="text-sky-600" />
-              1. Pilihan Wadah & Sekat
-            </h4>
-            <div className="opt-select-grid">
-              <button
-                type="button"
-                className={`opt-btn-choice ${containerType === 'single' ? 'selected' : ''}`}
-                onClick={() => setContainerType('single')}
-              >
-                <span className="opt-btn-name">Wadah Tunggal</span>
-                <span className="opt-btn-desc">1 Gelas Kimia Standar</span>
-              </button>
-
-              <button
-                type="button"
-                className={`opt-btn-choice ${containerType === 'salt_bridge' ? 'selected' : ''}`}
-                onClick={() => setContainerType('salt_bridge')}
-              >
-                <span className="opt-btn-name">Jembatan Garam</span>
-                <span className="opt-btn-desc">2 Beaker + Tabung U</span>
-              </button>
-
-              <button
-                type="button"
-                className={`opt-btn-choice ${containerType === 'porous_pot' ? 'selected' : ''}`}
-                onClick={() => setContainerType('porous_pot')}
-              >
-                <span className="opt-btn-name">Sekat Berpori</span>
-                <span className="opt-btn-desc">Membran Pemisah</span>
-              </button>
-            </div>
-
-            {/* Salt Bridge electrolyte options if selected */}
-            {containerType === 'salt_bridge' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Garam Jembatan:</span>
-                {(['KNO3', 'Na2SO4', 'KCl'] as SaltBridgeSalt[]).map((salt) => (
-                  <button
-                    key={salt}
-                    type="button"
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      padding: '0.2rem 0.6rem',
-                      borderRadius: '6px',
-                      border: '1px solid',
-                      borderColor: saltBridgeSalt === salt ? '#0284c7' : '#cbd5e1',
-                      background: saltBridgeSalt === salt ? '#e0f2fe' : '#ffffff',
-                      color: saltBridgeSalt === salt ? '#0369a1' : '#475569',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => setSaltBridgeSalt(salt)}
-                  >
-                    {salt}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Card B: Pilihan Larutan / Lelehan Elektrolit */}
+          {/* Card 1: Pilihan Larutan / Lelehan Elektrolit */}
           <div className="sim-option-card">
             <h4 className="opt-section-title">
               <FlaskConical size={14} className="text-emerald-600" />
-              2. Pilihan Elektrolit
+              1. Pilihan Elektrolit
             </h4>
             <div className="solution-chips-grid">
               {(Object.keys(ELECTROLYTES) as ElectrolyteId[]).map((id) => {
@@ -867,11 +739,11 @@ export const ElectrolysisSimulator: React.FC = () => {
             </div>
           </div>
 
-          {/* Card C: Pilihan Elektroda (Katoda & Anoda Terpisah) */}
+          {/* Card 2: Pilihan Elektroda (Katoda & Anoda Terpisah) */}
           <div className="sim-option-card">
             <h4 className="opt-section-title">
               <Zap size={14} className="text-amber-500" />
-              3. Pilihan Batang Elektroda
+              2. Pilihan Batang Elektroda
             </h4>
             <div className="electrodes-duo-grid">
               {/* Katoda (-) Selector */}
@@ -1002,7 +874,7 @@ export const ElectrolysisSimulator: React.FC = () => {
 
             <div className="guide-chip" onClick={() => applyPreset('chloralkali')}>
               <span className="guide-chip-title">🏭 2. Industri Klor-Alkali (NaCl Brine)</span>
-              Larutan NaCl + Elektroda Karbon (C) + Sekat. Gas Cl₂ di anoda &amp; H₂ di katoda.
+              Larutan NaCl + Elektroda Karbon (C) Inert. Gas Cl₂ di anoda &amp; H₂ di katoda.
             </div>
 
             <div className="guide-chip" onClick={() => applyPreset('water_split')}>
