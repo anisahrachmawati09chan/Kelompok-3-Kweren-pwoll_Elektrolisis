@@ -15,44 +15,84 @@ import { firebaseService } from './firebaseService';
 export interface FirebaseAuthResult {
   success: boolean;
   message: string;
+  code?: string;
+  hint?: string;
   profile?: UserProfile;
 }
 
 /**
- * Format pesan kesalahan Firebase Auth menjadi bahasa Indonesia yang ramah
+ * Format pesan kesalahan Firebase Auth menjadi bahasa Indonesia yang informatif dan solutif
  */
-function parseAuthErrorMessage(errorCode: string, defaultMsg: string): string {
+function parseAuthErrorMessage(errorCode: string, defaultMsg: string): { message: string; code: string; hint?: string } {
+  let message = defaultMsg || 'Terjadi kendala saat menghubungkan akun Firebase.';
+  let hint: string | undefined = undefined;
+
   switch (errorCode) {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return 'Email atau kata sandi salah. Silakan periksa kembali akun Anda.';
+      message = 'Email atau kata sandi tidak cocok. Silakan periksa kembali.';
+      hint = 'Jika belum punya akun, silakan beralih ke tab "Daftar Akun Baru".';
+      break;
     case 'auth/email-already-in-use':
-      return 'Email ini sudah terdaftar. Silakan gunakan tab "Masuk" untuk masuk.';
+      message = 'Email ini sudah terdaftar di Firebase.';
+      hint = 'Silakan beralih ke tab "Masuk (Login)" menggunakan email ini.';
+      break;
     case 'auth/weak-password':
-      return 'Kata sandi terlalu pendek. Minimal 6 karakter untuk akun Firebase.';
+      message = 'Kata sandi terlalu pendek.';
+      hint = 'Firebase mewajibkan kata sandi minimal 6 karakter.';
+      break;
     case 'auth/invalid-email':
-      return 'Format email tidak valid (contoh: siswa@gmail.com).';
+      message = 'Format email tidak valid.';
+      hint = 'Contoh format yang benar: nama@gmail.com atau siswa@sekolah.sch.id.';
+      break;
     case 'auth/popup-closed-by-user':
-      return 'Jendela masuk Google ditutup sebelum proses selesai.';
+      message = 'Jendela popup Google ditutup sebelum login selesai.';
+      hint = 'Klik tombol Google lagi dan pilih akun Google Anda.';
+      break;
+    case 'auth/popup-blocked':
+      message = 'Jendela popup Google diblokir oleh browser.';
+      hint = 'Izinkan pop-up (Allow pop-ups) pada bilah alamat browser Anda untuk web ini.';
+      break;
     case 'auth/cancelled-popup-request':
-      return 'Permintaan masuk Google dibatalkan.';
+      message = 'Permintaan masuk Google dibatalkan karena ada popup lain yang sedang diproses.';
+      break;
     case 'auth/operation-not-allowed':
-      return 'Penyedia login ini belum diaktifkan di Firebase Console. Buka Firebase Console > Authentication > Sign-in method, lalu aktifkan Google atau Email/Password.';
+    case 'auth/configuration-not-found':
+      message = 'Penyedia login belum diaktifkan di Firebase Console.';
+      hint = 'Buka Firebase Console > Authentication > tab "Sign-in method" > Aktifkan "Email/Password" dan "Google".';
+      break;
     case 'auth/unauthorized-domain':
-      return 'Domain web belum diizinkan. Tambahkan "localhost" pada Firebase Console > Authentication > Settings > Authorized domains.';
+      message = 'Domain web ini belum diizinkan oleh Firebase.';
+      hint = 'Buka Firebase Console > Authentication > tab "Settings" > "Authorized domains" > Tambahkan "localhost".';
+      break;
+    case 'auth/network-request-failed':
+      message = 'Koneksi jaringan ke server Firebase gagal.';
+      hint = 'Periksa koneksi internet Anda atau pastikan firewall tidak memblokir koneksi ke firebaseapp.com.';
+      break;
+    case 'auth/api-key-not-valid':
+    case 'auth/invalid-api-key':
+      message = 'Kunci API Firebase (API Key) tidak valid.';
+      hint = 'Periksa nilai VITE_FIREBASE_API_KEY di file .env.local Anda.';
+      break;
     default:
-      return defaultMsg || 'Terjadi kendala saat menghubungkan akun.';
+      if (errorCode) {
+        message = `Kendala Firebase: ${defaultMsg}`;
+        hint = `Kode kesalahan: ${errorCode}. Silakan periksa pengaturan Authentication di Firebase Console.`;
+      }
+      break;
   }
+
+  return { message, code: errorCode, hint };
 }
 
 /**
  * Layanan Otentikasi ChemVerse berbasis Firebase Auth
- * Mendukung Login Google, Email/Password, dan Fallback Lokal
+ * Firebase Auth sebagai Sistem Otentikasi UTAMA (Main Authentication)
  */
 export const firebaseAuthService = {
   /**
-   * Masuk atau Daftar Menggunakan Akun Google
+   * Masuk atau Daftar Menggunakan Akun Google (1-Click Google Sign-In)
    */
   async loginWithGoogle(
     role: 'student' | 'teacher',
@@ -61,14 +101,14 @@ export const firebaseAuthService = {
     if (!auth || !isFirebaseConfigured) {
       return {
         success: false,
-        message:
-          'Firebase belum terhubung. Pastikan Anda telah mengisi kredensial pada file .env.local.',
+        message: 'Firebase belum terhubung. Pastikan kredensial di file .env.local sudah benar.',
+        code: 'auth/not-configured',
+        hint: 'Periksa file .env.local Anda di folder proyek.',
       };
     }
 
     try {
       const provider = new GoogleAuthProvider();
-      // Minta akses profil & email
       provider.addScope('profile');
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
@@ -80,30 +120,47 @@ export const firebaseAuthService = {
       const email = user.email || '';
       const photoURL = user.photoURL || undefined;
 
-      // Simpan data akun ke penyimpanan lokal agar cepat dimuat ulang
+      // 1. Cek apakah pengguna sudah memiliki profil tersimpan di Cloud Firestore
+      let userProfile = await firebaseService.getUserProfile(user.uid);
+
+      if (!userProfile) {
+        // Buat profil baru di Cloud Firestore
+        if (role === 'teacher') {
+          userProfile = {
+            role: 'teacher',
+            name: displayName,
+            title: 'Guru Kimia SMA Kelas 12',
+            email,
+            avatar: photoURL,
+          };
+        } else {
+          userProfile = {
+            role: 'student',
+            name: displayName,
+            className: defaultClass,
+            email,
+            avatar: photoURL,
+          };
+        }
+        await firebaseService.saveUserProfile(user.uid, userProfile);
+      }
+
+      // 2. Simpan juga ke cache lokal agar instan saat offline
       authStore.saveGoogleAccount({
-        role,
-        name: displayName,
+        role: userProfile.role,
+        name: userProfile.name,
         email,
         avatar: photoURL,
-        className: role === 'student' ? defaultClass : undefined,
-        title: role === 'teacher' ? 'Guru Kimia SMA Kelas 12' : undefined,
+        className: userProfile.role === 'student' ? userProfile.className : undefined,
+        title: userProfile.role === 'teacher' ? userProfile.title : undefined,
       });
 
-      if (role === 'student') {
-        const studentProfile: StudentProfile = {
-          role: 'student',
-          name: displayName,
-          className: defaultClass,
-          email,
-          avatar: photoURL,
-        };
-
-        // Rekam data siswa ke Cloud Firestore jika terhubung
-        firebaseService.saveStudentToCloud({
-          id: `std-google-${user.uid.slice(0, 8)}`,
-          name: displayName,
-          className: defaultClass,
+      // 3. Jika peran adalah siswa, rekam ke daftar pemantauan guru (chemverse_students)
+      if (userProfile.role === 'student') {
+        await firebaseService.saveStudentToCloud({
+          id: `std-${user.uid.slice(0, 8)}`,
+          name: userProfile.name,
+          className: userProfile.className,
           loginTime: new Date().toISOString().replace('T', ' ').slice(0, 16),
           score: 0,
           maxScore: 4,
@@ -113,40 +170,31 @@ export const firebaseAuthService = {
 
         return {
           success: true,
-          message: `Berhasil masuk dengan akun Google: ${displayName}`,
-          profile: studentProfile,
+          message: `Berhasil masuk dengan akun Google: ${userProfile.name}`,
+          profile: userProfile,
         };
       } else {
-        const teacherProfile: TeacherProfile = {
-          role: 'teacher',
-          name: displayName,
-          title: 'Guru Kimia SMA Kelas 12',
-          email,
-          avatar: photoURL,
-        };
-
         return {
           success: true,
-          message: `Selamat datang di Panel Guru, ${displayName}!`,
-          profile: teacherProfile,
+          message: `Selamat datang di Panel Guru, ${userProfile.name}!`,
+          profile: userProfile,
         };
       }
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string };
       console.warn('⚠️ Gagal login Google:', err);
-      const friendlyMsg = parseAuthErrorMessage(
-        err.code || '',
-        err.message || 'Gagal masuk dengan Google.'
-      );
+      const errInfo = parseAuthErrorMessage(err.code || '', err.message || 'Gagal masuk dengan Google.');
       return {
         success: false,
-        message: friendlyMsg,
+        message: errInfo.message,
+        code: errInfo.code,
+        hint: errInfo.hint,
       };
     }
   },
 
   /**
-   * Daftar Akun Baru Menggunakan Email dan Password
+   * Daftar Akun Baru Menggunakan Email dan Password ke Firebase Authentication
    */
   async registerWithEmail(params: {
     email: string;
@@ -158,12 +206,63 @@ export const firebaseAuthService = {
   }): Promise<FirebaseAuthResult> {
     const { email, password, name, role, className, title } = params;
 
-    // Jika Firebase terkonfigurasi, daftarkan ke Firebase Authentication
+    // Validasi dasar
+    if (!email || !email.includes('@')) {
+      return {
+        success: false,
+        message: 'Format email tidak valid. Masukkan email aktif Anda.',
+        code: 'auth/invalid-email',
+        hint: 'Contoh: siswa@gmail.com atau nama@sekolah.sch.id',
+      };
+    }
+
+    if (password.length < 6) {
+      return {
+        success: false,
+        message: 'Kata sandi minimal 6 karakter sesuai standar keamanan Firebase.',
+        code: 'auth/weak-password',
+        hint: 'Gunakan minimal 6 karakter kombinasi huruf dan angka.',
+      };
+    }
+
+    // Jika Firebase terkonfigurasi, buat akun di Firebase Authentication
     if (auth && isFirebaseConfigured) {
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         if (cred.user) {
           await updateProfile(cred.user, { displayName: name });
+        }
+
+        const profile: UserProfile =
+          role === 'teacher'
+            ? {
+                role: 'teacher',
+                name,
+                title: title || 'Guru Kimia SMA Kelas 12',
+                email,
+              }
+            : {
+                role: 'student',
+                name,
+                className: className || 'Kelas 12 IPA 1',
+                email,
+              };
+
+        // Simpan profil lengkap ke Cloud Firestore (chemverse_users)
+        await firebaseService.saveUserProfile(cred.user.uid, profile);
+
+        // Jika siswa, rekam juga ke pemantauan guru (chemverse_students)
+        if (role === 'student') {
+          await firebaseService.saveStudentToCloud({
+            id: `std-${cred.user.uid.slice(0, 8)}`,
+            name,
+            className: className || 'Kelas 12 IPA 1',
+            loginTime: new Date().toISOString().replace('T', ' ').slice(0, 16),
+            score: 0,
+            maxScore: 4,
+            status: 'Sedang Belajar',
+            completedQuestionsCount: 0,
+          });
         }
 
         // Simpan juga ke cache lokal
@@ -177,42 +276,25 @@ export const firebaseAuthService = {
           title,
         });
 
-        if (role === 'student') {
-          const studentProfile: StudentProfile = {
-            role: 'student',
-            name,
-            className: className || 'Kelas 12 IPA 1',
-            email,
-          };
-          return {
-            success: true,
-            message: 'Pendaftaran akun Firebase berhasil! Selamat bergabung di ChemVerse.',
-            profile: studentProfile,
-          };
-        } else {
-          const teacherProfile: TeacherProfile = {
-            role: 'teacher',
-            name,
-            title: title || 'Guru Kimia SMA Kelas 12',
-            email,
-          };
-          return {
-            success: true,
-            message: 'Pendaftaran akun Guru berhasil!',
-            profile: teacherProfile,
-          };
-        }
+        return {
+          success: true,
+          message: 'Pendaftaran akun Firebase berhasil! Selamat bergabung di ChemVerse.',
+          profile,
+        };
       } catch (error: unknown) {
         const err = error as { code?: string; message?: string };
         console.warn('⚠️ Gagal register email Firebase:', err);
+        const errInfo = parseAuthErrorMessage(err.code || '', err.message || 'Pendaftaran gagal.');
         return {
           success: false,
-          message: parseAuthErrorMessage(err.code || '', err.message || 'Pendaftaran gagal.'),
+          message: errInfo.message,
+          code: errInfo.code,
+          hint: errInfo.hint,
         };
       }
     }
 
-    // Fallback: Daftarkan ke sistem penyimpanan lokal
+    // Fallback lokal jika Firebase belum diatur
     const localRes = authStore.register({
       role,
       name,
@@ -227,33 +309,30 @@ export const firebaseAuthService = {
       return { success: false, message: localRes.message };
     }
 
-    if (role === 'student') {
-      return {
-        success: true,
-        message: 'Pendaftaran lokal berhasil!',
-        profile: {
-          role: 'student',
-          name,
-          className: className || 'Kelas 12 IPA 1',
-          email,
-        },
-      };
-    } else {
-      return {
-        success: true,
-        message: 'Pendaftaran guru lokal berhasil!',
-        profile: {
-          role: 'teacher',
-          name,
-          title: title || 'Guru Kimia SMA Kelas 12',
-          email,
-        },
-      };
-    }
+    const localProfile: UserProfile =
+      role === 'student'
+        ? {
+            role: 'student',
+            name,
+            className: className || 'Kelas 12 IPA 1',
+            email,
+          }
+        : {
+            role: 'teacher',
+            name,
+            title: title || 'Guru Kimia SMA Kelas 12',
+            email,
+          };
+
+    return {
+      success: true,
+      message: 'Pendaftaran lokal berhasil!',
+      profile: localProfile,
+    };
   },
 
   /**
-   * Masuk Menggunakan Email dan Kata Sandi
+   * Masuk Menggunakan Email dan Kata Sandi ke Firebase Authentication
    */
   async loginWithEmail(
     email: string,
@@ -265,75 +344,55 @@ export const firebaseAuthService = {
       try {
         const cred = await signInWithEmailAndPassword(auth, email, password);
         const user = cred.user;
-        const displayName = user.displayName || email.split('@')[0];
 
-        // Cari atau perbarui di authStore lokal
-        const localAccounts = authStore.getAccounts();
-        const found = localAccounts.find(
-          (a) => a.role === role && (a.email?.toLowerCase() === email.toLowerCase() || a.name === displayName)
-        );
+        // Ambil profil lengkap dari Cloud Firestore
+        let profile = await firebaseService.getUserProfile(user.uid);
 
-        if (role === 'student') {
-          const profile: StudentProfile = {
-            role: 'student',
-            name: found?.name || displayName,
-            className: found?.className || 'Kelas 12 IPA 1',
-            email: user.email || email,
-            avatar: user.photoURL || undefined,
-          };
-          return {
-            success: true,
-            message: `Berhasil masuk sebagai ${profile.name}`,
-            profile,
-          };
-        } else {
-          const profile: TeacherProfile = {
-            role: 'teacher',
-            name: found?.name || displayName,
-            title: found?.title || 'Guru Kimia SMA Kelas 12',
-            email: user.email || email,
-            avatar: user.photoURL || undefined,
-          };
-          return {
-            success: true,
-            message: `Selamat datang, ${profile.name}`,
-            profile,
-          };
+        if (!profile) {
+          // Jika belum tersimpan di Firestore, buat profil baru dari data akun
+          const displayName = user.displayName || email.split('@')[0];
+          profile =
+            role === 'teacher'
+              ? {
+                  role: 'teacher',
+                  name: displayName,
+                  title: 'Guru Kimia SMA Kelas 12',
+                  email: user.email || email,
+                  avatar: user.photoURL || undefined,
+                }
+              : {
+                  role: 'student',
+                  name: displayName,
+                  className: 'Kelas 12 IPA 1',
+                  email: user.email || email,
+                  avatar: user.photoURL || undefined,
+                };
+          await firebaseService.saveUserProfile(user.uid, profile);
         }
+
+        // Perbarui juga data di cache lokal
+        authStore.saveGoogleAccount({
+          role: profile.role,
+          name: profile.name,
+          email: user.email || email,
+          avatar: profile.avatar,
+          className: profile.role === 'student' ? profile.className : undefined,
+          title: profile.role === 'teacher' ? profile.title : undefined,
+        });
+
+        return {
+          success: true,
+          message: `Berhasil masuk sebagai ${profile.name}`,
+          profile,
+        };
       } catch (error: unknown) {
         const err = error as { code?: string; message?: string };
-        // Jika error adalah unauthorized-domain atau operation-not-allowed, coba fallback ke authStore
-        if (
-          err.code === 'auth/operation-not-allowed' ||
-          err.code === 'auth/unauthorized-domain' ||
-          err.code === 'auth/network-request-failed'
-        ) {
-          console.warn('Firebase Auth belum aktif, mencoba kredensial lokal...');
-          const localRes = authStore.login(email, password, role);
-          if (localRes.success && localRes.account) {
-            return {
-              success: true,
-              message: 'Berhasil masuk melalui mode penyimpanan lokal.',
-              profile:
-                localRes.account.role === 'student'
-                  ? {
-                    role: 'student',
-                    name: localRes.account.name,
-                    className: localRes.account.className || 'Kelas 12 IPA 1',
-                    email: localRes.account.email,
-                  }
-                  : {
-                    role: 'teacher',
-                    name: localRes.account.name,
-                    title: localRes.account.title || 'Guru Kimia SMA Kelas 12',
-                    email: localRes.account.email,
-                  },
-            };
-          }
-        }
+        const errInfo = parseAuthErrorMessage(err.code || '', err.message || 'Gagal masuk.');
         return {
           success: false,
-          message: parseAuthErrorMessage(err.code || '', err.message || 'Gagal masuk.'),
+          message: errInfo.message,
+          code: errInfo.code,
+          hint: errInfo.hint,
         };
       }
     }
@@ -344,29 +403,26 @@ export const firebaseAuthService = {
       return { success: false, message: res.message };
     }
 
-    if (res.account.role === 'student') {
-      return {
-        success: true,
-        message: 'Berhasil masuk!',
-        profile: {
-          role: 'student',
-          name: res.account.name,
-          className: res.account.className || 'Kelas 12 IPA 1',
-          email: res.account.email,
-        },
-      };
-    } else {
-      return {
-        success: true,
-        message: 'Berhasil masuk!',
-        profile: {
-          role: 'teacher',
-          name: res.account.name,
-          title: res.account.title || 'Guru Kimia SMA Kelas 12',
-          email: res.account.email,
-        },
-      };
-    }
+    const fallbackProfile: UserProfile =
+      res.account.role === 'student'
+        ? {
+            role: 'student',
+            name: res.account.name,
+            className: res.account.className || 'Kelas 12 IPA 1',
+            email: res.account.email,
+          }
+        : {
+            role: 'teacher',
+            name: res.account.name,
+            title: res.account.title || 'Guru Kimia SMA Kelas 12',
+            email: res.account.email,
+          };
+
+    return {
+      success: true,
+      message: 'Berhasil masuk!',
+      profile: fallbackProfile,
+    };
   },
 
   /**
