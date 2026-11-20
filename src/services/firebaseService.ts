@@ -9,11 +9,12 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../config/firebase';
-import type { StudentRecord } from '../utils/studentRecords';
+import type { StudentRecord, UserProfile } from '../utils/studentRecords';
 import { studentRecordStore } from '../utils/studentRecords';
 import type { QuizQuestion } from '../data/questionsData';
 import { questionStore } from '../data/questionsData';
 
+const COLLECTION_USERS = 'chemverse_users';
 const COLLECTION_STUDENTS = 'chemverse_students';
 const COLLECTION_QUESTIONS = 'chemverse_questions';
 
@@ -23,6 +24,71 @@ const COLLECTION_QUESTIONS = 'chemverse_questions';
  * sehingga aplikasi tidak akan macet atau blank jika koneksi internet terputus.
  */
 export const firebaseService = {
+  /**
+   * Menyimpan atau memperbarui profil pengguna di Cloud Firestore (chemverse_users)
+   */
+  async saveUserProfile(uid: string, profile: UserProfile): Promise<boolean> {
+    if (!db || !isFirebaseConfigured) return false;
+    try {
+      const userRef = doc(db, COLLECTION_USERS, uid);
+      await setDoc(
+        userRef,
+        {
+          uid,
+          role: profile.role,
+          name: profile.name,
+          email: profile.email || '',
+          avatar: profile.avatar || '',
+          ...(profile.role === 'student'
+            ? { className: profile.className }
+            : { title: profile.title }),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      console.log(`☁️ Profil user "${profile.name}" tersimpan di Cloud Firestore.`);
+      return true;
+    } catch (err) {
+      console.warn('⚠️ Gagal menyimpan profil ke Firestore:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Mengambil profil pengguna dari Cloud Firestore berdasarkan UID
+   */
+  async getUserProfile(uid: string): Promise<UserProfile | null> {
+    if (!db || !isFirebaseConfigured) return null;
+    try {
+      const userRef = doc(db, COLLECTION_USERS, uid);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.role === 'teacher') {
+          return {
+            role: 'teacher',
+            name: data.name || 'Guru Kimia',
+            title: data.title || 'Guru Kimia SMA Kelas 12',
+            email: data.email || undefined,
+            avatar: data.avatar || undefined,
+          };
+        } else {
+          return {
+            role: 'student',
+            name: data.name || 'Siswa',
+            className: data.className || 'Kelas 12 IPA 1',
+            email: data.email || undefined,
+            avatar: data.avatar || undefined,
+          };
+        }
+      }
+      return null;
+    } catch (err) {
+      console.warn('⚠️ Gagal mengambil profil dari Firestore:', err);
+      return null;
+    }
+  },
+
   /**
    * Menyimpan atau memperbarui data siswa ke Cloud Firestore
    */

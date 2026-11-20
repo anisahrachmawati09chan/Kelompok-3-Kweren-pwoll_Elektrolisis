@@ -1,20 +1,22 @@
 import React from 'react';
-import { ArrowRight, Sparkles, Atom } from 'lucide-react';
+import { ArrowRight, Sparkles, Atom, FlaskConical } from 'lucide-react';
 
 interface WelcomeBannerProps {
   studentName?: string;
   onStartLearning: () => void;
+  onOpenVirtualLab?: () => void;
 }
 
 /**
  * WelcomeBanner: 2 banner atas persis seperti gambar referensi:
  * 1. Banner Peach: Sambutan ramah siswa disesuaikan dengan nama siswa yang login,
- *    serta penjelasan konsep sel elektrolisis.
+ *    penjelasan konsep sel elektrolisis, serta tombol cepat ke Lab Virtual Interaktif.
  * 2. Banner Putih/Lavender: Ajakan belajar Modul 1 dengan link CTA dan perolehan poin XP.
  */
 export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({
   studentName = 'Elsa',
   onStartLearning,
+  onOpenVirtualLab,
 }) => {
   // Ambil nama panggilan pertama untuk sapaan hangat, atau nama lengkap jika pendek
   const trimmed = studentName.trim();
@@ -22,7 +24,7 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({
 
   return (
     <div className="banners-grid-row">
-      {/* 1. Banner Peach (Sambutan Personal & Penjelasan Konsep) */}
+      {/* 1. Banner Peach (Sambutan Personal, Lab Virtual CTA & Penjelasan Konsep) */}
       <div className="banner-card greeting-banner">
         <div className="greeting-banner-content">
           <h2 className="greeting-heading">Selamat Belajar, {firstName}!</h2>
@@ -30,9 +32,23 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({
             Kuasai konsep <strong>Sel Elektrolisis SMA Kelas 12</strong>. Pelajari bagaimana arus listrik searah (DC)
             mengurai senyawa menjadi unsur melalui reaksi redoks tidak spontan!
           </p>
-          <div className="greeting-pill-badge">
-            <Sparkles size={14} />
-            <span>Fase F Kurikulum Merdeka</span>
+
+          <div className="greeting-action-row">
+            {onOpenVirtualLab && (
+              <button
+                type="button"
+                className="btn-lab-cta"
+                onClick={onOpenVirtualLab}
+                title="Buka Lab Virtual Interaktif untuk mempraktikkan reaksi elektrolisis"
+              >
+                <FlaskConical size={16} />
+                <span>Buka Lab Virtual Interaktif</span>
+              </button>
+            )}
+            <div className="greeting-pill-badge">
+              <Sparkles size={14} />
+              <span>Fase F Kurikulum Merdeka</span>
+            </div>
           </div>
         </div>
 

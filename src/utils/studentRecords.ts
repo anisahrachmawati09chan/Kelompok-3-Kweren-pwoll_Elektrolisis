@@ -156,6 +156,27 @@ export const studentRecordStore = {
 
     return list;
   },
+
+  resetScore(name: string): StudentRecord[] {
+    const list = this.getAll();
+    const existing = list.find((s) => s.name.toLowerCase() === name.toLowerCase());
+
+    if (existing) {
+      existing.score = 0;
+      existing.completedQuestionsCount = 0;
+      existing.status = 'Sedang Belajar';
+
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(list));
+        }
+      } catch (err) {
+        console.warn('Gagal mereset nilai siswa:', err);
+      }
+    }
+
+    return list;
+  },
 };
 
 /**
