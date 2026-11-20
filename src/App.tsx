@@ -6,7 +6,6 @@ import { LearningCardsRow } from './components/dashboard/LearningCardsRow';
 import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
-import { HelpCenterModal } from './features/help/HelpCenterModal';
 import { HelpModal } from './components/help/HelpModal';
 import { VirtualLabModal } from './features/virtualLab/VirtualLabModal';
 import { LoginScreen } from './components/auth/LoginScreen';
@@ -63,9 +62,6 @@ function App() {
 
   // State modal Lab Virtual Interaktif (Media Bantu Siswa Memahami Materi)
   const [isVirtualLabOpen, setIsVirtualLabOpen] = useState<boolean>(false);
-
-  // State modal Pusat Bantuan (FAQ, XP, Reset, dsb)
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
 
   // State modal Tanya Guru / Kontak Tim Pendiri (dari commit c858d67)
   const [isContactModalOpen, setIsContactModalOpen] = useState<boolean>(false);
@@ -222,23 +218,6 @@ function App() {
     }
   };
 
-  /**
-   * Handler Siswa: Reset Progres Jawaban Kuis
-   */
-  const handleResetStudentProgress = () => {
-    if (userProfile && userProfile.role === 'student') {
-      const updated = studentRecordStore.resetScore(userProfile.name);
-      setStudents(updated);
-      if (isFirebaseConfigured) {
-        const currentStudent = updated.find((s) => s.name === userProfile.name);
-        if (currentStudent) {
-          firebaseService.saveStudentToCloud(currentStudent);
-        }
-      }
-      triggerToast('Progres latihan kuis Anda berhasil direset ke awal.');
-    }
-  };
-
   const handleOpenStudySheet = (subtopicId: string = '1.1') => {
     setSelectedSubtopicId(subtopicId);
     setIsLabSheetOpen(true);
@@ -304,10 +283,7 @@ function App() {
             return;
           }
           setActiveTab(tabId);
-          if (tabId === 'help') {
-            setIsHelpModalOpen(true);
-          }
-          if (tabId === 'discuss') {
+          if (tabId === 'help' || tabId === 'discuss') {
             setIsContactModalOpen(true);
           }
         }}
@@ -371,15 +347,7 @@ function App() {
         onClose={() => setIsVirtualLabOpen(false)}
       />
 
-      {/* 5. Modal Pusat Bantuan (FAQ, XP, Reset Progress, Tutorial, Kontak) */}
-      <HelpCenterModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        onResetProgress={handleResetStudentProgress}
-        studentName={userProfile?.name}
-      />
-
-      {/* 6. Modal Tanya Guru / Kontak Tim Pendiri (dari commit c858d67) */}
+      {/* 5. Modal Tanya Guru / Kontak Tim Pendiri (dari commit c858d67) */}
       <HelpModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
@@ -388,7 +356,7 @@ function App() {
         }
       />
 
-      {/* 7. Notifikasi Toast */}
+      {/* 6. Notifikasi Toast */}
       {toastMessage && (
         <div className="dash-toast" role="alert">
           <Lock size={16} className="dash-toast-icon" />
