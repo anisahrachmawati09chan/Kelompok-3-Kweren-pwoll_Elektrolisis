@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Virtual — Sel Elektrolisis</title>
+<style>
+  :root{
+    --cream:#FBF8EC; --cream-2:#F4F1DE;
+    --green-1:#E9F2DA; --green-2:#D5E8C0; --green-3:#B7D89B;
+    --green-4:#7FAF5E; --green-5:#4E7F36;
+    --ink:#2B3A22; --ink-2:#5E7050;
+    --card:rgba(255,255,255,.74); --line:rgba(127,175,94,.38);
+    --warn:#C98A18; --ok:#4E7F36; --bad:#B23A2E;
+    --shadow:0 14px 30px -22px rgba(43,58,34,.75), inset 0 1px 0 #fff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;color:var(--ink);
+    font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 12% -12%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(900px 520px at 102% 112%, var(--green-2) 0%, rgba(255,255,255,0) 62%),
+      linear-gradient(165deg, var(--cream) 0%, var(--cream-2) 32%, var(--green-1) 72%, var(--green-2) 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1600px;margin:0 auto;padding:20px 22px 40px}
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .badge{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(145deg,#ffffff,var(--green-2));border:1.5px solid var(--line);
+    box-shadow:0 8px 20px -12px rgba(43,58,34,.6), inset 0 1px 0 #fff;}
+  h1{font-size:21px;margin:0;letter-spacing:-.2px}
+  h1 span{color:var(--green-5)}
+  .sub{margin:2px 0 0;font-size:13px;color:var(--ink-2)}
+  .header-actions{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+  .header-actions button{font:inherit;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:11px;
+    cursor:pointer;border:1.5px solid var(--line);background:linear-gradient(150deg,#ffffff,#EDF4E3);
+    color:var(--ink);transition:transform .12s;}
+  .header-actions button:hover{transform:translateY(-1px)}
+
+  .app{display:grid;gap:16px;grid-template-columns:280px minmax(0,1fr) 420px;align-items:start;}
+  @media (max-width:1320px){ .app{grid-template-columns:270px minmax(0,1fr)} .app .panel.right{grid-column:1/-1} }
+  @media (max-width:820px){ .app{grid-template-columns:1fr} }
+
+  .card{background:var(--card);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border:1.5px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
+  .card + .card{margin-top:14px}
+  .card h2{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--green-5);
+    margin:0 0 12px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .card h2 .num{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;
+    background:var(--green-4);color:#fff;font-size:11px;font-weight:800;}
+
+  .misi-list{display:flex;flex-direction:column;gap:8px}
+  .misi-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    border:1.5px solid var(--line);background:rgba(255,255,255,.7);font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;}
+  .misi-item:hover{transform:translateX(2px)}
+  .misi-item .mnum{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+    background:var(--green-2);color:var(--green-5);font-size:12px;font-weight:800;flex-shrink:0;}
+  .misi-item.done .mnum{background:var(--green-4);color:#fff}
+  .misi-item.done{border-color:rgba(78,127,54,.6);background:rgba(78,127,54,.1)}
+  .misi-item.locked{opacity:.5;cursor:not-allowed}
+  .misi-item.locked:hover{transform:none}
+  .misi-item.active{border-color:var(--green-4);background:rgba(127,175,94,.2);
+    box-shadow:0 0 0 3px rgba(127,175,94,.15);}
+  .misi-item .mtext{flex:1;line-height:1.3}
+  .misi-item .mtext small{display:block;font-size:11px;color:var(--ink-2);font-weight:500;margin-top:2px}
+
+  label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:0 0 6px}
+  select,input[type=range],input[type=text],textarea{width:100%}
+  select, input[type=text], textarea{appearance:none;padding:10px 12px;border-radius:11px;
+    font-size:13.5px;border:1.5px solid var(--line);background:#fff;color:var(--ink);
+    font-weight:600;font-family:inherit;}
+  select{padding-right:34px;cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,var(--green-5) 50%),linear-gradient(135deg,var(--green-5) 50%,transparent 50%);
+    background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+  textarea{resize:vertical;min-height:56px;font-weight:500;line-height:1.5}
+  select:focus,input:focus,textarea:focus{outline:2px solid var(--green-3);outline-offset:2px}
+  select:disabled{opacity:.55;cursor:not-allowed}
+  .fld-row{margin-bottom:14px}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:99px;
+    background:var(--green-2);border:1px solid var(--line);cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+    background:radial-gradient(circle at 32% 30%,#fff,var(--green-4) 65%);border:2px solid #fff;
+    box-shadow:0 3px 8px -2px rgba(43,58,34,.6);}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--green-4);
+    border:2px solid #fff;cursor:pointer;}
+  .volt-val{float:right;font-weight:700;color:var(--green-5);font-size:13px}
+
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+  button{font:inherit;font-weight:700;font-size:13.5px;padding:11px 10px;border-radius:12px;
+    cursor:pointer;border:1.5px solid var(--line);transition:transform .12s,box-shadow .12s,opacity .12s;}
+  button:active{transform:translateY(1px) scale(.99)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .btn-play{background:linear-gradient(150deg,#8FC46B,#4E7F36);color:#fff;border-color:#3F6B2B;
+    box-shadow:0 10px 20px -12px #3F6B2B}
+  .btn-play.paused{background:linear-gradient(150deg,#F0B44A,#C98A18);border-color:#A87410}
+  .btn-play.locked{background:linear-gradient(150deg,#c9d2bf,#a8b59a);border-color:#93a085;cursor:not-allowed}
+  .btn-reset{background:linear-gradient(150deg,#ffffff,#EDF4E3);color:var(--ink)}
+  .btn-mini{padding:8px 12px;font-size:12.5px;border-radius:10px;
+    background:linear-gradient(150deg,#ffffff,#EDF4E3);color:var(--ink);}
+  .btn-primary{background:linear-gradient(150deg,#8FC46B,#4E7F36);color:#fff;border-color:#3F6B2B}
+  .btn-warn{background:linear-gradient(150deg,#F5CB7A,#C98A18);color:#3d2c05;border-color:#A87410}
+
+  canvas#cv{width:100%;height:auto;display:block;border-radius:14px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink-2);margin-top:4px}
+  .legend i{width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:5px}
+  .hint{font-size:11.5px;color:#86977a;margin-top:10px;line-height:1.5}
+
+  /* ==== KUALITAS BUKTI ==== */
+  .bukti-meter{
+    display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:11px;
+    background:rgba(127,175,94,.14);border:1px solid var(--line);margin-bottom:12px;
+  }
+  .bukti-meter .bmlabel{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--green-5)}
+  .bukti-meter .stars{font-size:16px;letter-spacing:1px;color:#C98A18}
+  .bukti-meter .stars .off{color:#d5d5d5}
+
+  .status-pred{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;
+    padding:9px 12px;border-radius:10px;margin-bottom:12px;}
+  .status-pred.ok{background:rgba(78,127,54,.13);color:var(--ok);border:1px solid rgba(78,127,54,.3)}
+  .status-pred.no{background:rgba(201,138,24,.14);color:var(--warn);border:1px solid rgba(201,138,24,.35)}
+
+  /* ==== KONDISI AWAL ==== */
+  .baseline-panel{
+    padding:12px;border-radius:12px;border:1.5px dashed rgba(78,127,54,.5);
+    background:rgba(233,242,218,.55);margin-bottom:12px;
+  }
+  .baseline-panel.done{border-style:solid;background:rgba(78,127,54,.08)}
+  .baseline-title{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--green-5);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .baseline-panel .fld{margin-top:8px}
+
+  /* ==== FASE GEJALA ==== */
+  .sensory{border-radius:12px;padding:11px 13px;margin-bottom:10px;
+    border:1.5px solid var(--line);background:rgba(255,255,255,.72);}
+  .sensory .tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+  .sensory .tag.kat{color:#3b4a56}
+  .sensory .tag.ano{color:#B23A2E}
+  .sensory .desc{font-size:13px;line-height:1.5;color:var(--ink)}
+  .sensory .desc.empty{color:#a8b59a;font-style:italic}
+  .sensory .phase-list{list-style:none;margin:6px 0 0;padding:0;font-size:12.5px;line-height:1.5}
+  .sensory .phase-list li{padding:4px 8px;border-radius:7px;margin-bottom:3px;
+    background:rgba(127,175,94,.1);display:flex;gap:8px;align-items:flex-start;opacity:.35;transition:opacity .3s}
+  .sensory .phase-list li.on{opacity:1;background:rgba(127,175,94,.2)}
+  .sensory .phase-list .ph-tag{font-size:10.5px;font-weight:800;color:var(--green-5);flex-shrink:0;min-width:44px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dot.neg{background:#3b4a56;box-shadow:0 0 0 3px rgba(59,74,86,.16)}
+  .dot.pos{background:#c0392b;box-shadow:0 0 0 3px rgba(192,57,43,.16)}
+
+  /* ==== FIELD BUKTI vs TAFSIRAN ==== */
+  .field-block{margin-top:12px}
+  .field-block .fld{display:flex;align-items:center;gap:6px}
+  .field-block.bukti .fld{color:var(--green-5)}
+  .field-block.tafsiran .fld{color:#8a6710}
+  .field-block textarea{border-width:2px}
+  .field-block.bukti textarea{border-color:rgba(78,127,54,.45);background:rgba(233,242,218,.4)}
+  .field-block.tafsiran textarea{border-color:rgba(201,138,24,.5);background:rgba(245,203,122,.15)}
+  .field-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.04em}
+  .field-tag.bukti{background:rgba(78,127,54,.2);color:var(--ok)}
+  .field-tag.tafsiran{background:rgba(201,138,24,.22);color:#8a6710}
+
+  .diff-box{margin-top:10px;padding:12px 13px;border-radius:12px;border:1.5px solid var(--line);
+    background:rgba(255,255,255,.86);}
+  .diff-box h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--green-5);}
+  .diff-row{display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;align-items:center;
+    font-size:12.5px;padding:6px 0;border-bottom:1px dashed rgba(127,175,94,.3);}
+  .diff-row:last-child{border-bottom:none}
+  .diff-row .lab{font-weight:700;color:var(--ink-2)}
+  .diff-row .val{font-weight:600;padding:5px 8px;border-radius:7px;background:rgba(127,175,94,.1);word-break:break-word}
+  .diff-row .val.ok{background:rgba(78,127,54,.16);color:var(--ok)}
+  .diff-row .val.bad{background:rgba(178,58,46,.13);color:var(--bad)}
+  .diff-verdict{margin-top:10px;padding:9px 11px;border-radius:9px;font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;gap:7px;}
+  .diff-verdict.ok{background:rgba(78,127,54,.16);color:var(--ok)}
+  .diff-verdict.bad{background:rgba(178,58,46,.13);color:var(--bad)}
+
+  .reflection-box{margin-top:12px;padding:12px 13px;border-radius:12px;
+    border:1.5px solid rgba(201,138,24,.55);background:rgba(245,203,122,.18);}
+  .reflection-box .rtitle{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    color:#8a6710;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .reflection-box .rtext{font-size:12.5px;line-height:1.55;color:#5a430a;margin-bottom:8px}
+  .reflection-box textarea{width:100%;font-size:12.5px;background:#fff}
+
+  .rxn-block{margin-top:12px;padding:12px 13px;border-radius:12px;
+    border:1.5px solid var(--line);background:rgba(255,255,255,.86);}
+  .rxn-block .rxn-line{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12.5px;line-height:1.55;color:#2b3a22;padding:7px 9px;border-radius:8px;
+    background:rgba(127,175,94,.13);margin-bottom:6px;word-break:break-word;}
+  .rxn-block .rxn-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--green-5);margin-bottom:4px}
+  .note{font-size:12.5px;line-height:1.55;color:var(--ink-2);background:rgba(183,216,155,.25);
+    border-left:4px solid var(--green-4);border-radius:0 10px 10px 0;padding:10px 12px;margin-top:12px;}
+
+  .hint-box{padding:11px 12px;border-radius:12px;font-size:12.5px;line-height:1.5;
+    border:1.5px dashed rgba(201,138,24,.5);background:rgba(245,203,122,.18);color:#5a430a;margin-bottom:10px;}
+  .hint-lvl{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8a6710}
+
+  .modal-bg{position:fixed;inset:0;z-index:100;background:rgba(43,58,34,.5);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-bg.show{display:flex}
+  .modal{background:linear-gradient(165deg, #ffffff 0%, #F4F1DE 100%);
+    border:1.5px solid var(--line);border-radius:20px;max-width:560px;width:100%;
+    max-height:92vh;overflow-y:auto;padding:24px 26px;
+    box-shadow:0 30px 80px -30px rgba(43,58,34,.65);}
+  .modal.wide{max-width:1120px}
+  .modal h2{margin:0 0 4px;font-size:18px;color:var(--green-5);letter-spacing:-.2px;}
+  .modal .modal-sub{margin:0 0 18px;font-size:13px;color:var(--ink-2);line-height:1.5}
+  .modal .fld-row{margin-bottom:14px}
+  .scale-row{display:flex;align-items:center;gap:10px}
+  .scale-row input[type=range]{flex:1}
+  .scale-val{min-width:34px;text-align:center;font-weight:800;color:var(--green-5);font-size:15px;
+    background:rgba(127,175,94,.14);border-radius:8px;padding:4px 0;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;
+    padding-top:16px;border-top:1px dashed var(--line);flex-wrap:wrap;}
+  .modal-actions button{min-width:110px}
+  .modal-err{margin-top:10px;padding:8px 11px;border-radius:9px;font-size:12.5px;
+    background:rgba(178,58,46,.13);color:var(--bad);font-weight:600;display:none;}
+  .modal-err.show{display:block}
+
+  .papan-wrap{overflow-x:auto;border-radius:12px;border:1.5px solid var(--line);background:#fff}
+  .papan-table{width:100%;border-collapse:collapse;font-size:12px;min-width:820px;}
+  .papan-table th{background:rgba(127,175,94,.2);color:var(--green-5);text-align:left;
+    padding:9px 10px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    border-bottom:1.5px solid var(--line);}
+  .papan-table td{padding:9px 10px;border-bottom:1px dashed rgba(127,175,94,.3);
+    vertical-align:top;line-height:1.45;}
+  .papan-table tr:last-child td{border-bottom:none}
+  .papan-table td.misi-col{font-weight:800;color:var(--green-5);white-space:nowrap}
+  .tag-badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10.5px;
+    font-weight:800;letter-spacing:.04em;margin-right:4px;}
+  .tag-badge.ok{background:rgba(78,127,54,.2);color:var(--ok)}
+  .tag-badge.bad{background:rgba(178,58,46,.15);color:var(--bad)}
+  .papan-empty{padding:30px 20px;text-align:center;color:#86977a;font-size:13px;}
+
+  .induksi-block{margin-top:16px;padding:16px;border-radius:14px;
+    border:1.5px solid rgba(201,138,24,.5);background:rgba(245,203,122,.15);}
+  .induksi-block h3{margin:0 0 12px;font-size:14px;color:#5a430a}
+  .induksi-q{background:#fff;border-radius:10px;padding:12px;margin-bottom:12px;
+    border:1px solid rgba(127,175,94,.35);}
+  .induksi-q p{margin:0 0 8px;font-size:13px;font-weight:600;line-height:1.5}
+  .induksi-q textarea{width:100%;min-height:64px;font-size:12.5px}
+  .induksi-q .saved{display:inline-block;margin-top:6px;font-size:11.5px;color:var(--ok);font-weight:700;}
+
+  .rekap-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px;margin-bottom:16px;}
+  .rekap-card{padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);
+    background:rgba(255,255,255,.8);}
+  .rekap-card .rk{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .rekap-card .rv{font-size:20px;font-weight:800;color:var(--green-5);margin-top:3px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    padding:12px 20px;border-radius:12px;background:linear-gradient(150deg,#8FC46B,#4E7F36);
+    color:#fff;font-weight:700;font-size:13.5px;box-shadow:0 18px 40px -16px rgba(43,58,34,.7);
+    z-index:200;opacity:0;transition:all .3s;pointer-events:none;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="badge">⚗️</div>
+    <div>
+      <h1>Lab Virtual — <span>Sel Elektrolisis</span></h1>
+      <p class="sub">Catat kondisi awal → jalankan → amati 3 fase → tulis bukti → baru tafsirkan.</p>
+    </div>
+    <div class="header-actions">
+      <button id="btnPapan">📊 Papan Banding</button>
+      <button id="btnRekap">📄 Rekap &amp; Ekspor</button>
+      <button id="btnResetAll">🗑 Reset Sesi</button>
+    </div>
+  </header>
+
+  <div class="app">
+
+    <!-- KIRI -->
+    <div class="panel left">
+      <div class="card">
+        <h2>Misi Penyelidikan</h2>
+        <div class="misi-list" id="misiList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Variabel Terkontrol</h2>
+        <div class="fld-row">
+          <label class="fld" for="el">Elektrolit</label>
+          <select id="el" disabled></select>
+        </div>
+        <div class="fld-row">
+          <label class="fld" for="elc">Elektrode</label>
+          <select id="elc" disabled></select>
+        </div>
+        <div class="fld-row">
+          <label class="fld" for="v">Tegangan <span class="volt-val" id="vv">5 V</span></label>
+          <input type="range" id="v" min="1" max="12" step="1" value="5">
+        </div>
+        <div class="btns">
+          <button class="btn-play locked" id="play" disabled>🔒 Isi Prediksi</button>
+          <button class="btn-reset" id="reset">⟲ Reset Misi</button>
+        </div>
+        <p class="hint">Variabel dikunci sesuai misi aktif.</p>
+      </div>
+
+      <div class="card">
+        <h2>💡 Bantuan (Berbiaya)</h2>
+        <div class="bukti-meter">
+          <span class="bmlabel">Kualitas Bukti</span>
+          <span class="stars" id="buktiStars">★★★★★</span>
+        </div>
+        <div id="hintArea">
+          <button class="btn-mini btn-warn" id="btnHint" style="width:100%">💡 Buka Hint 1 (−1 ★)</button>
+          <p class="hint" id="hintCount">Buka hint = kualitas bukti turun. Coba pikir dulu sebelum buka.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Legenda Partikel</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <!-- TENGAH -->
+    <div class="panel mid">
+      <div class="card" style="padding:10px">
+        <canvas id="cv"></canvas>
+      </div>
+    </div>
+
+    <!-- KANAN -->
+    <div class="panel right">
+
+      <div class="card">
+        <h2><span class="num">1</span> Prediksi Awal</h2>
+        <div class="status-pred no" id="predStatus">
+          <span>🔒 Belum ada prediksi untuk misi ini.</span>
+        </div>
+        <button class="btn-mini btn-primary" id="openPred" style="width:100%">✎ Isi / Ubah Prediksi</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">2</span> Catat Kondisi Awal</h2>
+        <div class="baseline-panel" id="baselinePanel">
+          <div class="baseline-title">📋 Sebelum jalankan — lihat &amp; catat</div>
+          <label class="fld">Warna / penampakan larutan</label>
+          <input type="text" id="baseWarna" placeholder="mis. biru jernih, bening, kuning panas…">
+          <label class="fld">Kondisi elektrode</label>
+          <input type="text" id="baseElektrode" placeholder="mis. kedua elektrode utuh, belum ada gelembung">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">3</span> Amati 3 Fase</h2>
+        <div class="sensory">
+          <div class="tag kat"><span class="dot neg"></span> Katode (−)</div>
+          <ul class="phase-list" id="kPhases">
+            <li data-i="0"><span class="ph-tag">Fase 1</span><span>—</span></li>
+            <li data-i="1"><span class="ph-tag">Fase 2</span><span>—</span></li>
+            <li data-i="2"><span class="ph-tag">Fase 3</span><span>—</span></li>
+          </ul>
+        </div>
+        <div class="sensory">
+          <div class="tag ano"><span class="dot pos"></span> Anode (＋)</div>
+          <ul class="phase-list" id="aPhases">
+            <li data-i="0"><span class="ph-tag">Fase 1</span><span>—</span></li>
+            <li data-i="1"><span class="ph-tag">Fase 2</span><span>—</span></li>
+            <li data-i="2"><span class="ph-tag">Fase 3</span><span>—</span></li>
+          </ul>
+        </div>
+        <p class="hint" id="phaseHint">Fase akan terbuka satu per satu saat simulasi berjalan.</p>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">4</span> Tulis Bukti &amp; Tafsiran</h2>
+
+        <div class="field-block bukti">
+          <label class="fld"><span class="field-tag bukti">BUKTI</span> Apa yang kamu LIHAT? (≥ 30 kar)</label>
+          <textarea id="bukti" placeholder="Tulis gejala spesifik: warna larutan, gelembung, lapisan di elektrode, perubahan ukuran…"></textarea>
+          <p class="hint" id="buktiHint">Ini pengamatan mentah — belum tafsir.</p>
+        </div>
+
+        <div class="field-block tafsiran">
+          <label class="fld"><span class="field-tag tafsiran">TAFSIRAN</span> Menurutmu itu apa? (≥ 30 kar)</label>
+          <textarea id="tafsir" placeholder="Berdasarkan bukti, apa yang terbentuk di katode dan anode? Kenapa?"></textarea>
+          <p class="hint" id="tafsirHint">Ini interpretasi — hubungkan dengan reaksi.</p>
+        </div>
+
+        <button class="btn-mini btn-primary" id="btnBanding" style="width:100%;margin-top:14px" disabled>
+          ⇄ Bandingkan dengan Prediksi
+        </button>
+      </div>
+
+      <div class="card" id="hasilCard" style="display:none">
+        <h2><span class="num">5</span> Bandingkan &amp; Refleksi</h2>
+        <div id="diffContainer"></div>
+        <div id="reflectionContainer"></div>
+        <div id="rxnContainer" style="display:none"></div>
+        <div class="note" id="noteBox" style="display:none"></div>
+        <button class="btn-mini btn-primary" id="btnNextMisi" style="width:100%;margin-top:14px;display:none">
+          ➜ Lanjut ke Misi Berikutnya
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREDIKSI -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>🔍 Prediksi Dulu</h2>
+    <p class="modal-sub" id="modalSub">Tulis dugaanmu sebelum mengamati.</p>
+    <div class="fld-row">
+      <label class="fld" for="predK">Produk di <b>katode (−)</b></label>
+      <select id="predK">
+        <option value="">— pilih —</option>
+        <option value="cu">Logam Cu</option>
+        <option value="ag">Logam Ag</option>
+        <option value="na">Logam Na</option>
+        <option value="h2">Gas H₂</option>
+        <option value="o2">Gas O₂</option>
+        <option value="cl2">Gas Cl₂</option>
+        <option value="tidak">Tidak tahu</option>
+      </select>
+    </div>
+    <div class="fld-row">
+      <label class="fld" for="predA">Produk di <b>anode (＋)</b></label>
+      <select id="predA">
+        <option value="">— pilih —</option>
+        <option value="cu">Logam Cu</option>
+        <option value="ag">Logam Ag</option>
+        <option value="h2">Gas H₂</option>
+        <option value="o2">Gas O₂</option>
+        <option value="cl2">Gas Cl₂</option>
+        <option value="larut">Elektrode larut</option>
+        <option value="tidak">Tidak tahu</option>
+      </select>
+    </div>
+    <div class="fld-row">
+      <label class="fld" for="predAlasan">Alasan (min. 20 karakter)</label>
+      <textarea id="predAlasan" placeholder="Mengapa kamu memilih produk itu?"></textarea>
+    </div>
+    <div class="fld-row">
+      <label class="fld" for="predYakin">Tingkat keyakinan</label>
+      <div class="scale-row">
+        <span style="font-size:12px;color:var(--ink-2)">Ragu</span>
+        <input type="range" id="predYakin" min="1" max="5" step="1" value="3">
+        <span style="font-size:12px;color:var(--ink-2)">Yakin</span>
+        <span class="scale-val" id="yakinVal">3</span>
+      </div>
+    </div>
+    <div class="modal-err" id="modalErr">Lengkapi semua isian dulu (produk K, produk A, alasan ≥ 20 karakter).</div>
+    <div class="modal-actions">
+      <button class="btn-mini" id="modalCancel">Batal</button>
+      <button class="btn-mini btn-primary" id="modalSave">Simpan Prediksi</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAPAN BANDING -->
+<div class="modal-bg" id="papanBg">
+  <div class="modal wide">
+    <h2>📊 Papan Banding — Pola Lintas Kasus</h2>
+    <p class="modal-sub">Gunakan tabel ini untuk menemukan pola: kapan air bereaksi, beda inert/aktif, mengapa leburan berbeda.</p>
+    <div class="papan-wrap">
+      <table class="papan-table">
+        <thead>
+          <tr>
+            <th style="width:52px">Misi</th>
+            <th>Elektrolit</th>
+            <th>Elektrode</th>
+            <th>Bukti Katode</th>
+            <th>Bukti Anode</th>
+            <th>Produk Benar</th>
+            <th>Prediksi</th>
+          </tr>
+        </thead>
+        <tbody id="papanBody"></tbody>
+      </table>
+    </div>
+    <div class="papan-empty" id="papanEmpty">Belum ada misi yang selesai.</div>
+    <div id="induksiContainer"></div>
+    <div class="modal-actions">
+      <button class="btn-mini" id="papanClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- REKAP -->
+<div class="modal-bg" id="rekapBg">
+  <div class="modal wide">
+    <h2>📄 Rekap Sesi</h2>
+    <p class="modal-sub">Unduh sebagai JSON untuk portofolio digital.</p>
+    <div class="rekap-summary" id="rekapSummary"></div>
+    <div class="papan-wrap" style="margin-bottom:16px">
+      <table class="papan-table">
+        <thead>
+          <tr>
+            <th style="width:52px">Misi</th>
+            <th>Elektrolit + Elektrode</th>
+            <th>Prediksi</th>
+            <th>Hasil</th>
+            <th>Cocok</th>
+            <th>Bukti</th>
+            <th>Tafsiran</th>
+            <th>★</th>
+          </tr>
+        </thead>
+        <tbody id="rekapBody"></tbody>
+      </table>
+    </div>
+    <h3 style="font-size:13px;color:var(--green-5);margin:16px 0 8px">Jawaban Pertanyaan Induksi Pola</h3>
+    <div id="rekapInduksi" style="font-size:12.5px;line-height:1.6;color:var(--ink-2)"></div>
+    <div class="modal-actions">
+      <button class="btn-mini" id="btnExportJSON">⬇ Unduh JSON</button>
+      <button class="btn-mini btn-warn" id="btnPrint">🖨 Cetak</button>
+      <button class="btn-mini" id="rekapClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== GEOMETRI ===== */
+const W = 900, H = 620;
+const G = {
+  beaker:{ x1:200, x2:700, top:200, bottom:545, r:26 },
+  liquidTop: 248, katodeX: 335, anodeX: 565,
+  elecW: 24, elecTop: 148, elecBottom: 498,
+  bat:{ x1:405, x2:495, y1:70, y2:114 }, wireY: 92
+};
+
+/* ===== DATA (dengan 3 fase gejala) ===== */
+const DATA = {
+  cuso4:{
+    name:'CuSO₄(aq)', base:'#2f7fd6',
+    cation:{ sym:'Cu²⁺', color:'#0d47a1' },
+    anion: { sym:'SO₄²⁻',color:'#d99b00' },
+    visual:{
+      c:  { kType:'deposit', aType:'gas',      depColor:'#a9603a', aGas:'rgba(255,255,255,.9)', final:'#e8f4ff' },
+      cu: { kType:'deposit', aType:'dissolve', depColor:'#a9603a', final:'#2f7fd6' }
+    },
+    produk:{
+      c:{ kProduct:'cu', aProduct:'o2',
+          kPhases:['Katode masih bersih, warna larutan biru jernih',
+                   'Mulai tampak lapisan tipis cokelat di katode',
+                   'Lapisan cokelat makin tebal dan merata menempel di katode'],
+          aPhases:['Anode masih bersih, belum ada gelembung',
+                   'Gelembung kecil mulai muncul di sekitar anode',
+                   'Gelembung naik teratur dan makin banyak dari anode'],
+          kRxn:'Cu²⁺(aq) + 2e⁻ → Cu(s)',
+          aRxn:'2H₂O(l) → O₂(g) + 4H⁺(aq) + 4e⁻',
+          note:'Warna biru larutan memudar karena ion Cu²⁺ berkurang tereduksi menjadi logam Cu.' },
+      cu:{ kProduct:'cu', aProduct:'larut',
+          kPhases:['Katode masih bersih, larutan biru jernih',
+                   'Lapisan tipis cokelat mulai tampak di katode',
+                   'Lapisan cokelat makin tebal di katode'],
+          aPhases:['Anode tembaga masih utuh, belum berubah',
+                   'Ujung anode tampak mulai tergerus tipis',
+                   'Anode jelas menipis dan memendek'],
+          kRxn:'Cu²⁺(aq) + 2e⁻ → Cu(s)',
+          aRxn:'Cu(s) → Cu²⁺(aq) + 2e⁻',
+          note:'Warna larutan tetap. Atom Cu berpindah dari anoda ke katode — dasar pemurnian tembaga.' }
+    }
+  },
+  agno3:{
+    name:'AgNO₃(aq)', base:'#eef4f8',
+    cation:{ sym:'Ag⁺', color:'#6b7280' },
+    anion: { sym:'NO₃⁻',color:'#c2410c' },
+    visual:{
+      c:  { kType:'deposit', aType:'gas',      depColor:'#cfd8de', aGas:'rgba(255,255,255,.9)', final:'#eef4f8' },
+      ag: { kType:'deposit', aType:'dissolve', depColor:'#cfd8de', final:'#eef4f8' },
+      cu: { kType:'deposit', aType:'dissolve', depColor:'#cfd8de', final:'#5aa9e6' }
+    },
+    produk:{
+      c:{ kProduct:'ag', aProduct:'o2',
+          kPhases:['Katode masih bersih, larutan bening',
+                   'Lapisan tipis putih mulai tampak di katode',
+                   'Lapisan putih mengkilap makin tebal di katode'],
+          aPhases:['Anode masih bersih',
+                   'Gelembung kecil mulai muncul di anode',
+                   'Gelembung naik teratur dari anode'],
+          kRxn:'Ag⁺(aq) + e⁻ → Ag(s)',
+          aRxn:'2H₂O(l) → O₂(g) + 4H⁺(aq) + 4e⁻',
+          note:'Kristal perak mengendap di katode; larutan makin asam.' },
+      ag:{ kProduct:'ag', aProduct:'larut',
+          kPhases:['Katode masih bersih, larutan bening',
+                   'Lapisan tipis putih mulai tampak di katode',
+                   'Lapisan putih mengkilap makin tebal'],
+          aPhases:['Anode perak masih utuh',
+                   'Permukaan anode tampak mulai tergerus',
+                   'Anode jelas menipis mengkilap'],
+          kRxn:'Ag⁺(aq) + e⁻ → Ag(s)',
+          aRxn:'Ag(s) → Ag⁺(aq) + e⁻',
+          note:'Perak murni berpindah dari anoda ke katode.' },
+      cu:{ kProduct:'ag', aProduct:'larut',
+          kPhases:['Katode masih bersih, larutan bening',
+                   'Lapisan tipis putih mulai tampak di katode',
+                   'Lapisan putih makin tebal'],
+          aPhases:['Anode tembaga masih utuh',
+                   'Ujung anode mulai tergerus, semburat biru muncul',
+                   'Anode menipis, warna biru makin jelas'],
+          kRxn:'Ag⁺(aq) + e⁻ → Ag(s)',
+          aRxn:'Cu(s) → Cu²⁺(aq) + 2e⁻',
+          note:'Anoda Cu larut membentuk Cu²⁺, larutan membiru.' }
+    }
+  },
+  nacl:{
+    name:'NaCl(aq) pekat', base:'#eaf6fb',
+    cation:{ sym:'Na⁺', color:'#0e7490' },
+    anion: { sym:'Cl⁻', color:'#65a30d' },
+    visual:{
+      c:  { kType:'gas', aType:'gas',      kGas:'rgba(255,255,255,.9)', aGas:'rgba(190,220,110,.95)', final:'#eaf6fb' },
+      cu: { kType:'gas', aType:'dissolve', kGas:'rgba(255,255,255,.9)', final:'#7fc4ea' }
+    },
+    produk:{
+      c:{ kProduct:'h2', aProduct:'cl2',
+          kPhases:['Katode masih bersih, larutan bening',
+                   'Gelembung kecil mulai muncul di katode',
+                   'Gelembung tak berwarna makin banyak naik dari katode'],
+          aPhases:['Anode masih bersih',
+                   'Gelembung kekuningan mulai muncul di anode',
+                   'Gelembung kuning-hijau makin banyak, bau menyengat'],
+          kRxn:'2H₂O(l) + 2e⁻ → H₂(g) + 2OH⁻(aq)',
+          aRxn:'2Cl⁻(aq) → Cl₂(g) + 2e⁻',
+          note:'Katode H₂ dan suasana basa; anode gas Cl₂ kuning-hijau.' },
+      cu:{ kProduct:'h2', aProduct:'larut',
+          kPhases:['Katode masih bersih',
+                   'Gelembung kecil mulai muncul di katode',
+                   'Gelembung makin banyak naik dari katode'],
+          aPhases:['Anode tembaga masih utuh',
+                   'Permukaan anode tampak mulai tergerus, semburat biru muncul',
+                   'Anode menipis, warna biru makin jelas'],
+          kRxn:'2H₂O(l) + 2e⁻ → H₂(g) + 2OH⁻(aq)',
+          aRxn:'Cu(s) → Cu²⁺(aq) + 2e⁻',
+          note:'Cu lebih mudah teroksidasi daripada Cl⁻.' }
+    }
+  },
+  h2so4:{
+    name:'H₂SO₄ encer', base:'#f2f8fb',
+    cation:{ sym:'H⁺', color:'#b91c1c' },
+    anion: { sym:'SO₄²⁻',color:'#d99b00' },
+    visual:{
+      c:  { kType:'gas', aType:'gas',      kGas:'rgba(255,255,255,.9)', aGas:'rgba(255,255,255,.9)', final:'#f2f8fb' },
+      cu: { kType:'gas', aType:'dissolve', kGas:'rgba(255,255,255,.9)', final:'#8fc9ea' }
+    },
+    produk:{
+      c:{ kProduct:'h2', aProduct:'o2',
+          kPhases:['Katode masih bersih, larutan bening',
+                   'Gelembung kecil mulai muncul di katode',
+                   'Gelembung terus naik dari katode (paling banyak)'],
+          aPhases:['Anode masih bersih',
+                   'Gelembung kecil mulai muncul di anode',
+                   'Gelembung naik dari anode (lebih sedikit dari katode)'],
+          kRxn:'2H⁺(aq) + 2e⁻ → H₂(g)',
+          aRxn:'2H₂O(l) → O₂(g) + 4H⁺(aq) + 4e⁻',
+          note:'Elektrolisis air. Volume H₂ : O₂ = 2 : 1.' },
+      cu:{ kProduct:'h2', aProduct:'larut',
+          kPhases:['Katode masih bersih',
+                   'Gelembung kecil mulai muncul di katode',
+                   'Gelembung makin banyak naik dari katode'],
+          aPhases:['Anode tembaga masih utuh',
+                   'Ujung anode mulai tergerus, semburat biru muncul',
+                   'Anode menipis, warna biru makin jelas'],
+          kRxn:'2H⁺(aq) + 2e⁻ → H₂(g)',
+          aRxn:'Cu(s) → Cu²⁺(aq) + 2e⁻',
+          note:'Anoda Cu larut membentuk ion Cu²⁺.' }
+    }
+  },
+  nacl_l:{
+    name:'NaCl leburan', base:'#f7e2a4',
+    cation:{ sym:'Na⁺', color:'#0e7490' },
+    anion: { sym:'Cl⁻', color:'#65a30d' },
+    visual:{
+      c:  { kType:'deposit', aType:'gas', depColor:'#9aa3a8', aGas:'rgba(190,220,110,.95)', final:'#f7e2a4' }
+    },
+    produk:{
+      c:{ kProduct:'na', aProduct:'cl2',
+          kPhases:['Katode masih bersih, cairan kuning panas',
+                   'Logam abu-abu mulai tampak di katode',
+                   'Logam abu-abu makin banyak menempel di katode'],
+          aPhases:['Anode masih bersih',
+                   'Gelembung kekuningan mulai muncul di anode',
+                   'Gelembung kuning-hijau makin banyak di anode'],
+          kRxn:'Na⁺(l) + e⁻ → Na(l)',
+          aRxn:'2Cl⁻(l) → Cl₂(g) + 2e⁻',
+          note:'Tanpa air, ion Na⁺ langsung tereduksi menjadi logam natrium.' }
+    }
+  }
+};
+
+const ELEC_STYLE = {
+  c:  { a:'#5a5a5a', b:'#1b1b1b', c:'#333' },
+  cu: { a:'#e6ab74', b:'#8a4418', c:'#c07a44' },
+  ag: { a:'#ffffff', b:'#9aa4ad', c:'#d6dde3' }
+};
+const ELEC_LABEL = { c:'Karbon (inert)', cu:'Tembaga (aktif)', ag:'Perak (aktif)' };
+const LABEL_PRODUK = {
+  cu:'Logam Cu', ag:'Logam Ag', na:'Logam Na',
+  h2:'Gas H₂', o2:'Gas O₂', cl2:'Gas Cl₂',
+  larut:'Elektrode larut', tidak:'Tidak tahu'
+};
+
+const MISI = [
+  { id:1, el:'cuso4',  elc:'c',  title:'CuSO₄ + Karbon', sub:'Elektrolit inert, elektrode inert',
+    scenario:'Kamu ingin melapisi sendok logam dengan tembaga. Apa yang terbentuk di setiap elektrode?' },
+  { id:2, el:'nacl',   elc:'c',  title:'NaCl pekat + Karbon', sub:'Uji anion halida pekat',
+    scenario:'Larutan garam dapur pekat dielektrolisis. Apa yang muncul di kedua elektrode?' },
+  { id:3, el:'cuso4',  elc:'cu', title:'CuSO₄ + Tembaga', sub:'Uji pengaruh elektrode aktif',
+    scenario:'Elektrolit sama dengan Misi 1, tapi anode diganti tembaga. Apakah hasilnya sama?' },
+  { id:4, el:'nacl_l', elc:'c',  title:'NaCl leburan + Karbon', sub:'Bandingkan dengan Misi 2',
+    scenario:'NaCl dilebur tanpa air. Apakah hasilnya masih sama dengan larutan NaCl?' },
+  { id:5, el:'h2so4',  elc:'c',  title:'H₂SO₄ encer + Karbon', sub:'Elektrolisis air',
+    scenario:'Asam sulfat encer hanya sebagai penghantar. Apa yang sebenarnya terurai?' }
+];
+
+/* ===== STATE ===== */
+const state = {
+  electrolyte:'cuso4', electrode:'c', voltage:5, running:false, prog:0,
+  activeMisiId:1, unlockedMisi:1,
+  completedMisi:new Set(),
+  predictions:{}, records:{}, hintLevel:{},
+  baseline:{},        // key: misiId → {warna, elektrode}
+  bukti:{},           // key: misiId → teks bukti
+  tafsir:{},          // key: misiId → teks tafsiran
+  reflection:{},      // key: misiId → {teks} jawaban refleksi
+  induksi:{ q1:'', q2:'', q3:'' },
+  // Fase yang sudah teramati pada misi aktif
+  phasesSeen:{ k:[false,false,false], a:[false,false,false] }
+};
+
+function currentKey(){ return state.electrolyte + '|' + state.electrode; }
+function currentMisi(){ return MISI.find(m => m.id === state.activeMisiId); }
+function currentVisual(){ const v = DATA[state.electrolyte].visual; return v[state.electrode] || v.c; }
+function currentProduk(){ const p = DATA[state.electrolyte].produk; return p[state.electrode] || p.c; }
+
+/* ===== CANVAS ===== */
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+function setupCanvas(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.aspectRatio = W + ' / ' + H;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+setupCanvas();
+window.addEventListener('resize', setupCanvas);
+
+let ions = [], bubbles = [], flashes = [], bumps = [];
+const rand = (a,b) => a + Math.random()*(b-a);
+function makeBumps(){
+  bumps = [];
+  for (let i=0;i<44;i++) bumps.push({ side: i%2?1:-1, t:Math.random(), r:2.4+Math.random()*3.6 });
+}
+function newIon(type, color){
+  const ion = { type, color, r: type==='cat'?9:11, vx: rand(-.18,.18), vy: rand(-.22,.22) };
+  respawn(ion); return ion;
+}
+function respawn(ion){
+  ion.x = ion.type === 'cat' ? rand(430, 670) : rand(230, 470);
+  ion.y = rand(G.liquidTop + 26, G.beaker.bottom - 48);
+  ion.vx = rand(-.18,.18); ion.vy = rand(-.22,.22);
+}
+function resetParticles(){
+  ions = []; bubbles = []; flashes = [];
+  const cat = DATA[state.electrolyte].cation;
+  const an  = DATA[state.electrolyte].anion;
+  for (let i=0;i<16;i++) ions.push(newIon('cat', cat.color));
+  for (let i=0;i<16;i++) ions.push(newIon('an',  an.color));
+  makeBumps();
+}
+
+/* Fase aktif: 0 = belum, 1 = fase-1 (prog>0.15), 2 = fase-2 (prog>0.5), 3 = fase-3 (prog>0.85) */
+function faseSekarang(){
+  if (state.prog < 0.15) return 0;
+  if (state.prog < 0.5)  return 1;
+  if (state.prog < 0.85) return 2;
+  return 3;
+}
+
+function update(dt){
+  const vis = currentVisual();
+  const speed = state.running ? (state.voltage / 5) : 0;
+  if (state.running) state.prog = Math.min(1, state.prog + 0.0021 * dt * (state.voltage/5));
+
+  for (const ion of ions){
+    const isCat = ion.type === 'cat';
+    const tx = isCat ? G.katodeX + G.elecW/2 + 16 : G.anodeX - G.elecW/2 - 16;
+    ion.y += ion.vy * dt; ion.x += ion.vx * dt;
+    if (state.running){ const sp = 0.62*speed*dt; ion.x += isCat ? -sp : sp; }
+    if (ion.y < G.liquidTop + 22){ ion.y = G.liquidTop + 22; ion.vy = Math.abs(ion.vy); }
+    if (ion.y > G.beaker.bottom - 42){ ion.y = G.beaker.bottom - 42; ion.vy = -Math.abs(ion.vy); }
+    if (state.running){
+      const reached = isCat ? ion.x <= tx : ion.x >= tx;
+      if (reached){ flashes.push({x:ion.x,y:ion.y,r:2,life:1,color:ion.color}); respawn(ion); }
+    } else {
+      if (ion.x < G.beaker.x1+26 || ion.x > G.beaker.x2-26) ion.vx *= -1;
+      ion.x = Math.max(G.beaker.x1+26, Math.min(G.beaker.x2-26, ion.x));
+    }
+  }
+
+  if (state.running){
+    const rate = 0.22 * (state.voltage/5) * dt;
+    if (vis.kType === 'gas' && Math.random() < rate)
+      bubbles.push(mkBubble(G.katodeX, vis.kGas || 'rgba(255,255,255,.9)'));
+    if (vis.aType === 'gas' && Math.random() < rate)
+      bubbles.push(mkBubble(G.anodeX, vis.aGas || 'rgba(255,255,255,.9)'));
+  }
+  for (let i = bubbles.length-1; i>=0; i--){
+    const b = bubbles[i];
+    b.y -= b.vy*dt; b.phase += 0.09*dt; b.x += Math.sin(b.phase)*0.35*dt;
+    if (b.y < G.liquidTop+8) bubbles.splice(i,1);
+  }
+  for (let i = flashes.length-1; i>=0; i--){
+    const f = flashes[i]; f.r += 0.75*dt; f.life -= 0.055*dt;
+    if (f.life <= 0) flashes.splice(i,1);
+  }
+}
+function mkBubble(ex, color){
+  const side = Math.random()<.5 ? -1 : 1;
+  return { x:ex+side*(G.elecW/2+3+Math.random()*5),
+    y:rand(G.liquidTop+60, G.elecBottom-20), r:2+Math.random()*3.6,
+    vy:0.7+Math.random()*1.1, phase:Math.random()*6.28, color };
+}
+
+function rrect(x,y,w,h,r){
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x,y,w,h,r);
+  else { ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+}
+function lerpColor(a,b,t){
+  const pa=[parseInt(a.slice(1,3),16),parseInt(a.slice(3,5),16),parseInt(a.slice(5,7),16)];
+  const pb=[parseInt(b.slice(1,3),16),parseInt(b.slice(3,5),16),parseInt(b.slice(5,7),16)];
+  return `rgb(${pa.map((v,i)=>Math.round(v+(pb[i]-v)*t)).join(',')})`;
+}
+function beakerPath(){
+  const b = G.beaker;
+  ctx.beginPath(); ctx.moveTo(b.x1, b.top);
+  ctx.lineTo(b.x1, b.bottom - b.r);
+  ctx.quadraticCurveTo(b.x1, b.bottom, b.x1+b.r, b.bottom);
+  ctx.lineTo(b.x2 - b.r, b.bottom);
+  ctx.quadraticCurveTo(b.x2, b.bottom, b.x2, b.bottom - b.r);
+  ctx.lineTo(b.x2, b.top);
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  const d = DATA[state.electrolyte];
+  const vis = currentVisual();
+  const p = state.prog;
+
+  ctx.save();
+  ctx.translate(450, 562); ctx.scale(1, .13);
+  const sh = ctx.createRadialGradient(0,0,0,0,0,285);
+  sh.addColorStop(0,'rgba(60,100,40,.32)'); sh.addColorStop(1,'rgba(60,100,40,0)');
+  ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(0,0,285,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  beakerPath(); ctx.closePath(); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+
+  const col = vis.final ? lerpColor(d.base, vis.final, Math.min(1, p*1.15)) : d.base;
+  ctx.save();
+  beakerPath(); ctx.closePath(); ctx.clip();
+  ctx.globalAlpha = .82; ctx.fillStyle = col;
+  ctx.fillRect(G.beaker.x1, G.liquidTop, 500, 400);
+  ctx.globalAlpha = 1;
+  const sg = ctx.createLinearGradient(0, G.liquidTop, 0, G.liquidTop + 16);
+  sg.addColorStop(0,'rgba(255,255,255,.55)'); sg.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle = sg; ctx.fillRect(G.beaker.x1, G.liquidTop, 500, 16);
+
+  for (const ion of ions){
+    ctx.save(); ctx.globalAlpha = .92;
+    const gr = ctx.createRadialGradient(ion.x-ion.r*.35, ion.y-ion.r*.4, 1, ion.x, ion.y, ion.r);
+    gr.addColorStop(0,'#ffffff'); gr.addColorStop(1, ion.color);
+    ctx.beginPath(); ctx.arc(ion.x, ion.y, ion.r, 0, Math.PI*2);
+    ctx.fillStyle = gr; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = '700 9px ui-sans-serif, system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(ion.type === 'cat' ? '+' : '−', ion.x, ion.y + .5);
+    ctx.restore();
+  }
+
+  drawElectrode(G.katodeX, true, vis, p);
+  drawElectrode(G.anodeX, false, vis, p);
+
+  for (const b of bubbles){
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.globalAlpha = .8; ctx.fillStyle = b.color; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 1; ctx.stroke();
+  }
+  for (const f of flashes){
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+    ctx.globalAlpha = f.life * .6; ctx.fillStyle = f.color; ctx.fill(); ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  beakerPath();
+  ctx.strokeStyle = 'rgba(122,160,100,.85)';
+  ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
+  beakerPath();
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.6; ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(G.beaker.x1 + 16, G.beaker.top + 40);
+  ctx.lineTo(G.beaker.x1 + 16, G.beaker.bottom - 70);
+  ctx.strokeStyle = 'rgba(255,255,255,.75)';
+  ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.stroke();
+
+  drawCircuit();
+
+  ctx.textBaseline = 'middle';
+  ctx.font = '700 15px ui-sans-serif, system-ui, sans-serif';
+  ctx.textAlign = 'right'; ctx.fillStyle = '#3b4a56';
+  ctx.fillText('Katode (−)', G.katodeX - 20, 182);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#c0392b';
+  ctx.fillText('Anode (＋)', G.anodeX + 20, 182);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(78,127,54,.9)';
+  ctx.fillText(d.name + '  ·  Misi ' + state.activeMisiId, 450, 598);
+}
+function drawElectrode(x, isKatode, vis, p){
+  const st = ELEC_STYLE[state.electrode];
+  const top = G.elecTop, bot = G.elecBottom;
+  let hw = G.elecW / 2;
+  if (!isKatode && vis.aType === 'dissolve') hw = hw * (1 - 0.52 * p);
+
+  const g = ctx.createLinearGradient(x - hw, 0, x + hw, 0);
+  g.addColorStop(0, st.b); g.addColorStop(.32, st.a);
+  g.addColorStop(.6, st.c); g.addColorStop(1, st.b);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(43,58,34,.35)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+  rrect(x-hw, top, hw*2, bot-top, Math.min(hw,7));
+  ctx.fillStyle = g; ctx.fill(); ctx.restore();
+
+  rrect(x-hw, top, hw*2, bot-top, Math.min(hw,7));
+  ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 1; ctx.stroke();
+
+  if (isKatode && vis.kType === 'deposit' && p > 0.01){
+    const n = Math.floor(p * bumps.length);
+    ctx.fillStyle = vis.depColor || '#a9603a';
+    for (let i = 0; i < n; i++){
+      const b = bumps[i];
+      const yy = top + 34 + b.t * (bot - top - 60);
+      const rr = b.r * (0.55 + 0.45 * p);
+      ctx.beginPath();
+      ctx.arc(x + b.side * (hw + rr * 0.45), yy, rr, 0, Math.PI*2);
+      ctx.globalAlpha = .9; ctx.fill(); ctx.globalAlpha = 1;
+    }
+  }
+}
+function drawCircuit(){
+  const b = G.bat;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(G.katodeX, G.elecTop); ctx.lineTo(G.katodeX, G.wireY); ctx.lineTo(b.x1, G.wireY);
+  ctx.strokeStyle = '#3b4a56'; ctx.lineWidth = 5; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(G.anodeX, G.elecTop); ctx.lineTo(G.anodeX, G.wireY); ctx.lineTo(b.x2, G.wireY);
+  ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 5; ctx.stroke();
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(43,58,34,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4;
+  rrect(b.x1, b.y1, b.x2-b.x1, b.y2-b.y1, 12);
+  const bg = ctx.createLinearGradient(0, b.y1, 0, b.y2);
+  bg.addColorStop(0, '#ffffff'); bg.addColorStop(1, '#E4EFD6');
+  ctx.fillStyle = bg; ctx.fill(); ctx.restore();
+
+  rrect(b.x1, b.y1, b.x2-b.x1, b.y2-b.y1, 12);
+  ctx.strokeStyle = 'rgba(127,175,94,.75)'; ctx.lineWidth = 2.2; ctx.stroke();
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '800 22px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = '#3b4a56'; ctx.fillText('−', b.x1 + 22, b.y1 + 22);
+  ctx.fillStyle = '#c0392b'; ctx.fillText('+', b.x2 - 22, b.y1 + 22);
+
+  ctx.font = '700 12px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = '#5E7050';
+  ctx.fillText(state.voltage + ' V', (b.x1+b.x2)/2, b.y2 + 16);
+}
+
+let lastT = performance.now();
+function loop(now){
+  const dt = Math.min(2.6, (now - lastT) / 16.667);
+  lastT = now;
+  update(dt); render();
+  requestAnimationFrame(loop);
+}
+
+/* ===== ELEMEN UI ===== */
+const elSel=document.getElementById('el'), elcSel=document.getElementById('elc');
+const vRange=document.getElementById('v'), vv=document.getElementById('vv');
+const playBtn=document.getElementById('play'), resetBtn=document.getElementById('reset');
+const legend=document.getElementById('legend'), misiList=document.getElementById('misiList');
+const predStatus=document.getElementById('predStatus'), openPredBtn=document.getElementById('openPred');
+const baseWarna=document.getElementById('baseWarna'), baseElektrode=document.getElementById('baseElektrode');
+const baselinePanel=document.getElementById('baselinePanel');
+const kPhases=document.getElementById('kPhases'), aPhases=document.getElementById('aPhases');
+const phaseHint=document.getElementById('phaseHint');
+const buktiEl=document.getElementById('bukti'), tafsirEl=document.getElementById('tafsir');
+const buktiHint=document.getElementById('buktiHint'), tafsirHint=document.getElementById('tafsirHint');
+const btnBanding=document.getElementById('btnBanding');
+const hasilCard=document.getElementById('hasilCard'), diffContainer=document.getElementById('diffContainer');
+const reflectionContainer=document.getElementById('reflectionContainer');
+const rxnContainer=document.getElementById('rxnContainer'), noteBox=document.getElementById('noteBox');
+const btnNextMisi=document.getElementById('btnNextMisi');
+const hintCountEl=document.getElementById('hintCount'), btnHint=document.getElementById('btnHint');
+const buktiStars=document.getElementById('buktiStars');
+const modalBg=document.getElementById('modalBg'), modalSub=document.getElementById('modalSub');
+const predK=document.getElementById('predK'), predA=document.getElementById('predA');
+const predAlasan=document.getElementById('predAlasan'), predYakin=document.getElementById('predYakin');
+const yakinVal=document.getElementById('yakinVal'), modalErr=document.getElementById('modalErr');
+const modalCancel=document.getElementById('modalCancel'), modalSave=document.getElementById('modalSave');
+const papanBg=document.getElementById('papanBg'), papanBody=document.getElementById('papanBody');
+const papanEmpty=document.getElementById('papanEmpty'), papanClose=document.getElementById('papanClose');
+const induksiContainer=document.getElementById('induksiContainer');
+const rekapBg=document.getElementById('rekapBg'), rekapSummary=document.getElementById('rekapSummary');
+const rekapBody=document.getElementById('rekapBody'), rekapInduksi=document.getElementById('rekapInduksi');
+const rekapClose=document.getElementById('rekapClose'), btnExportJSON=document.getElementById('btnExportJSON');
+const btnPrint=document.getElementById('btnPrint'), toast=document.getElementById('toast');
+
+const HINTS = {
+  'cuso4|c':[
+    'Bandingkan posisi Cu²⁺ dan H₂O di katode. Mana yang lebih mudah menerima elektron?',
+    'Ion Cu²⁺ punya E° +0,34 V, air −0,83 V. Yang lebih positif lebih mudah tereduksi.',
+    'Katode: Cu²⁺ + 2e⁻ → Cu. Anode: 2H₂O → O₂ + 4H⁺ + 4e⁻.'
+  ],
+  'nacl|c':[
+    'Di katode, Na⁺ tidak mudah tereduksi. Apa yang tersisa untuk menerima elektron?',
+    'Di anode, anion Cl⁻ pekat lebih mudah teroksidasi daripada air.',
+    'Katode: 2H₂O + 2e⁻ → H₂ + 2OH⁻. Anode: 2Cl⁻ → Cl₂ + 2e⁻.'
+  ],
+  'cuso4|cu':[
+    'Elektrode anode terbuat dari apa? Apakah ia bisa ikut bereaksi?',
+    'Logam Cu punya E° +0,34 V — jauh lebih mudah teroksidasi daripada air.',
+    'Katode: Cu²⁺ + 2e⁻ → Cu. Anode: Cu → Cu²⁺ + 2e⁻.'
+  ],
+  'nacl_l|c':[
+    'Di leburan ini tidak ada air. Jadi siapa yang tereduksi dan teroksidasi?',
+    'Ion Na⁺ dan Cl⁻ saja yang ada. Keduanya langsung bereaksi di elektrode.',
+    'Katode: Na⁺ + e⁻ → Na. Anode: 2Cl⁻ → Cl₂ + 2e⁻.'
+  ],
+  'h2so4|c':[
+    'H₂SO₄ hanya penghantar. Yang benar-benar terurai adalah…?',
+    'Ion H⁺ dan air (H₂O) bersaing di kedua elektrode.',
+    'Katode: 2H⁺ + 2e⁻ → H₂. Anode: 2H₂O → O₂ + 4H⁺ + 4e⁻. Volume H₂ : O₂ = 2 : 1.'
+  ]
+};
+
+/* ===== KUALITAS BUKTI ===== */
+function getKualitasBukti(){
+  const lvl = state.hintLevel[state.activeMisiId] || 0;
+  const bintang = Math.max(1, 5 - lvl);   // maks 5, min 1 (hint 3 = 2 bintang)
+  return bintang;
+}
+function renderBuktiStars(){
+  const n = getKualitasBukti();
+  let html = '';
+  for (let i = 0; i < 5; i++){
+    html += i < n ? '★' : '<span class="off">★</span>';
+  }
+  buktiStars.innerHTML = html;
+}
+
+/* ===== MISI ===== */
+function renderMisiList(){
+  misiList.innerHTML = '';
+  MISI.forEach(m => {
+    const done = state.completedMisi.has(m.id);
+    const active = state.activeMisiId === m.id;
+    const locked = m.id > state.unlockedMisi;
+    const el = document.createElement('div');
+    el.className = 'misi-item' + (done?' done':'') + (active?' active':'') + (locked?' locked':'');
+    el.innerHTML = `
+      <span class="mnum">${done ? '✓' : m.id}</span>
+      <span class="mtext">${m.title}<small>${m.sub}</small></span>
+      <span class="mstat">${locked ? '🔒' : (done ? '✓' : (active ? '▶' : '○'))}</span>
+    `;
+    el.addEventListener('click', () => {
+      if (locked){ showToast('Selesaikan misi sebelumnya dulu.'); return; }
+      if (active) return;
+      switchMisi(m.id);
+    });
+    misiList.appendChild(el);
+  });
+}
+
+function switchMisi(id){
+  state.activeMisiId = id;
+  const m = currentMisi();
+  state.electrolyte = m.el;
+  state.electrode = m.elc;
+  state.prog = 0; state.running = false;
+  state.phasesSeen = { k:[false,false,false], a:[false,false,false] };
+
+  elSel.value = m.el;
+  buildElectrodeOptions();
+  elcSel.value = m.elc;
+
+  // Muat kondisi awal
+  const bl = state.baseline[id] || { warna:'', elektrode:'' };
+  baseWarna.value = bl.warna;
+  baseElektrode.value = bl.elektrode;
+  updateBaselineUI();
+
+  // Muat bukti & tafsiran
+  buktiEl.value = state.bukti[id] || '';
+  tafsirEl.value = state.tafsir[id] || '';
+  updateBuktiHint(); updateTafsirHint();
+
+  // Render fase
+  renderPhases();
+
+  if (state.completedMisi.has(id) && state.records[id]){
+    renderHasilBanding(state.records[id], false);
+  } else {
+    resetComparison();
+  }
+
+  resetParticles(); updateLegend(); updatePredStatus(); updateHintUI(); renderBuktiStars(); updateBandingBtn();
+  playBtn.textContent = '▶ Mulai'; playBtn.classList.remove('paused');
+  renderMisiList();
+}
+
+function buildElectrodeOptions(){
+  elcSel.innerHTML = '';
+  const m = currentMisi();
+  const o = document.createElement('option');
+  o.value = m.elc; o.textContent = ELEC_LABEL[m.elc];
+  elcSel.appendChild(o);
+  elcSel.value = m.elc;
+  elcSel.disabled = true;
+}
+
+function updateLegend(){
+  const d = DATA[state.electrolyte];
+  legend.innerHTML = `
+    <span><i style="background:${d.cation.color}"></i>Kation ${d.cation.sym}</span>
+    <span><i style="background:${d.anion.color}"></i>Anion ${d.anion.sym}</span>
+  `;
+}
+
+function updatePredStatus(){
+  const key = currentKey();
+  const pred = state.predictions[key];
+  const misiDone = state.completedMisi.has(state.activeMisiId);
+  if (pred){
+    predStatus.className = 'status-pred ok';
+    predStatus.innerHTML = `<span>✓ Prediksi: <b>${LABEL_PRODUK[pred.k]}</b> (K) &amp; <b>${LABEL_PRODUK[pred.a]}</b> (A)</span>`;
+    playBtn.disabled = misiDone;
+    if (!misiDone){ playBtn.classList.remove('locked'); if (!state.running) playBtn.textContent = '▶ Mulai'; }
+    else { playBtn.classList.add('locked'); playBtn.textContent = '✓ Misi Selesai'; }
+  } else {
+    predStatus.className = 'status-pred no';
+    predStatus.innerHTML = `<span>🔒 Belum ada prediksi untuk misi ini.</span>`;
+    playBtn.disabled = true; playBtn.classList.add('locked'); playBtn.textContent = '🔒 Isi Prediksi';
+  }
+}
+
+function updateHintUI(){
+  const lvl = state.hintLevel[state.activeMisiId] || 0;
+  const key = state.electrolyte + '|' + state.electrode;
+  const hints = HINTS[key] || [];
+  const btnLabels = ['💡 Buka Hint 1 (−1 ★)','💡 Buka Hint 2 (−1 ★)','💡 Buka Hint 3 (−1 ★)'];
+  btnHint.disabled = lvl >= 3;
+  btnHint.textContent = lvl >= 3 ? '✓ Semua hint dibuka' : btnLabels[lvl];
+  const box = document.getElementById('hintArea');
+  box.querySelectorAll('.hint-box').forEach(el => el.remove());
+  for (let i=0;i<lvl;i++){
+    const div = document.createElement('div');
+    div.className = 'hint-box';
+    div.innerHTML = `<div class="hint-lvl">Hint ${i+1}</div>${hints[i] || '—'}`;
+    box.insertBefore(div, btnHint);
+  }
+  hintCountEl.textContent = lvl===0 ? 'Buka hint = kualitas bukti turun. Coba pikir dulu sebelum buka.'
+    : `Kamu sudah membuka ${lvl} dari 3 hint. Kualitas bukti: ${getKualitasBukti()} bintang.`;
+}
+btnHint.addEventListener('click', () => {
+  const id = state.activeMisiId;
+  const lvl = state.hintLevel[id] || 0;
+  if (lvl >= 3) return;
+  state.hintLevel[id] = lvl + 1;
+  updateHintUI(); renderBuktiStars();
+});
+
+/* ===== BASELINE ===== */
+function updateBaselineUI(){
+  const ok = baseWarna.value.trim().length >= 3 && baseElektrode.value.trim().length >= 3;
+  baselinePanel.classList.toggle('done', ok);
+  state.baseline[state.activeMisiId] = {
+    warna: baseWarna.value.trim(),
+    elektrode: baseElektrode.value.trim()
+  };
+  updateBandingBtn();
+}
+baseWarna.addEventListener('input', updateBaselineUI);
+baseElektrode.addEventListener('input', updateBaselineUI);
+function baselineOk(){
+  const bl = state.baseline[state.activeMisiId] || {};
+  return (bl.warna||'').length >= 3 && (bl.elektrode||'').length >= 3;
+}
+
+/* ===== FASE ===== */
+function renderPhases(){
+  const prod = currentProduk();
+  const phases = {
+    k: prod.kPhases || ['—','—','—'],
+    a: prod.aPhases || ['—','—','—']
+  };
+  [['kPhases', 'k', state.phasesSeen.k], ['aPhases', 'a', state.phasesSeen.a]].forEach(([id,key,seen]) => {
+    const ul = document.getElementById(id);
+    ul.querySelectorAll('li').forEach((li, i) => {
+      const text = phases[key][i] || '—';
+      li.querySelector('span:last-child').textContent = text;
+      if (seen[i]) li.classList.add('on');
+      else li.classList.remove('on');
+    });
+  });
+  const totalSeen = state.phasesSeen.k.filter(Boolean).length + state.phasesSeen.a.filter(Boolean).length;
+  phaseHint.textContent = totalSeen === 0
+    ? 'Fase akan terbuka satu per satu saat simulasi berjalan.'
+    : `Teramati: ${state.phasesSeen.k.filter(Boolean).length}/3 fase katode, ${state.phasesSeen.a.filter(Boolean).length}/3 fase anode.`;
+}
+
+function updateFaseFromProg(){
+  const f = faseSekarang();   // 0,1,2,3
+  if (f >= 1 && !state.phasesSeen.k[0]) state.phasesSeen.k[0] = true;
+  if (f >= 1 && !state.phasesSeen.a[0]) state.phasesSeen.a[0] = true;
+  if (f >= 2 && !state.phasesSeen.k[1]) state.phasesSeen.k[1] = true;
+  if (f >= 2 && !state.phasesSeen.a[1]) state.phasesSeen.a[1] = true;
+  if (f >= 3 && !state.phasesSeen.k[2]) state.phasesSeen.k[2] = true;
+  if (f >= 3 && !state.phasesSeen.a[2]) state.phasesSeen.a[2] = true;
+  renderPhases();
+}
+function allPhasesSeen(){
+  return state.phasesSeen.k.every(Boolean) && state.phasesSeen.a.every(Boolean);
+}
+
+/* ===== BUKTI & TAFSIRAN ===== */
+function updateBuktiHint(){
+  const len = buktiEl.value.trim().length;
+  const ok = len >= 30;
+  buktiHint.textContent = ok ? `✓ ${len} karakter — bukti tercatat.`
+                             : `Minimal 30 karakter (sekarang ${len}). Ini pengamatan mentah.`;
+  buktiHint.style.color = ok ? '#4E7F36' : '#86977a';
+  state.bukti[state.activeMisiId] = buktiEl.value;
+  updateBandingBtn();
+}
+function updateTafsirHint(){
+  const len = tafsirEl.value.trim().length;
+  const ok = len >= 30;
+  tafsirHint.textContent = ok ? `✓ ${len} karakter — tafsiran tercatat.`
+                              : `Minimal 30 karakter (sekarang ${len}). Ini interpretasi.`;
+  tafsirHint.style.color = ok ? '#4E7F36' : '#86977a';
+  state.tafsir[state.activeMisiId] = tafsirEl.value;
+  updateBandingBtn();
+}
+buktiEl.addEventListener('input', updateBuktiHint);
+tafsirEl.addEventListener('input', updateTafsirHint);
+
+function buktiOk(){ return buktiEl.value.trim().length >= 30; }
+function tafsirOk(){ return tafsirEl.value.trim().length >= 30; }
+
+function updateBandingBtn(){
+  const key = currentKey();
+  const hasPred = !!state.predictions[key];
+  const done = state.completedMisi.has(state.activeMisiId);
+  const ready = hasPred && baselineOk() && allPhasesSeen() && buktiOk() && tafsirOk() && state.prog > 0.85;
+  btnBanding.disabled = !ready || done;
+  btnBanding.textContent = done ? '✓ Sudah Dibandingkan' : '⇄ Bandingkan dengan Prediksi';
+}
+
+/* ===== PREDIKSI MODAL ===== */
+function openModal(){
+  const key = currentKey();
+  const pred = state.predictions[key];
+  if (pred){
+    predK.value = pred.k; predA.value = pred.a;
+    predAlasan.value = pred.alasan; predYakin.value = pred.yakin;
+    yakinVal.textContent = pred.yakin;
+    modalSub.textContent = 'Ubah prediksimu untuk misi ini, lalu simpan.';
+  } else {
+    predK.value = ''; predA.value = ''; predAlasan.value = '';
+    predYakin.value = 3; yakinVal.textContent = '3';
+    const m = currentMisi();
+    modalSub.textContent = `${m.title} — ${m.scenario}`;
+  }
+  modalErr.classList.remove('show');
+  modalBg.classList.add('show');
+}
+function closeModal(){ modalBg.classList.remove('show'); }
+openPredBtn.addEventListener('click', openModal);
+modalCancel.addEventListener('click', closeModal);
+modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
+predYakin.addEventListener('input', () => { yakinVal.textContent = predYakin.value; });
+modalSave.addEventListener('click', () => {
+  const k = predK.value, a = predA.value, alasan = predAlasan.value.trim();
+  if (!k || !a || alasan.length < 20){ modalErr.classList.add('show'); return; }
+  state.predictions[currentKey()] = { k, a, alasan, yakin:+predYakin.value, waktu:new Date().toISOString() };
+  closeModal(); updatePredStatus(); updateBandingBtn();
+});
+
+/* ===== PLAY / RESET ===== */
+playBtn.addEventListener('click', () => {
+  if (state.completedMisi.has(state.activeMisiId)){ showToast('Misi ini sudah selesai.'); return; }
+  if (!state.predictions[currentKey()]){ openModal(); return; }
+  if (!baselineOk()){ showToast('Isi kondisi awal dulu di panel kanan.'); return; }
+  state.running = !state.running;
+  playBtn.textContent = state.running ? '❚❚ Jeda' : '▶ Mulai';
+  playBtn.classList.toggle('paused', state.running);
+});
+
+resetBtn.addEventListener('click', () => {
+  if (state.completedMisi.has(state.activeMisiId)){ showToast('Misi selesai tidak bisa direset.'); return; }
+  state.prog = 0; state.running = false;
+  state.phasesSeen = { k:[false,false,false], a:[false,false,false] };
+  playBtn.textContent = '▶ Mulai'; playBtn.classList.remove('paused');
+  resetParticles(); resetComparison(); renderPhases(); updateBandingBtn();
+});
+
+function resetComparison(){
+  hasilCard.style.display = 'none';
+  diffContainer.innerHTML = ''; reflectionContainer.innerHTML = '';
+  rxnContainer.style.display = 'none'; rxnContainer.innerHTML = '';
+  noteBox.style.display = 'none'; noteBox.textContent = '';
+  btnNextMisi.style.display = 'none';
+}
+
+/* ===== BANDINGKAN + REFLEKSI ===== */
+btnBanding.addEventListener('click', () => {
+  const id = state.activeMisiId;
+  if (state.completedMisi.has(id)) return;
+  const key = currentKey(); const pred = state.predictions[key];
+  if (!pred) return;
+  const prod = currentProduk();
+  const matchK = pred.k === prod.kProduct;
+  const matchA = pred.a === prod.aProduct;
+  const bothMatch = matchK && matchA;
+  const bukti = buktiEl.value.trim();
+  const tafsir = tafsirEl.value.trim();
+  const bl = state.baseline[id];
+
+  const rec = {
+    misiId:id, elektrolit:state.electrolyte,
+    elektrolitName:DATA[state.electrolyte].name,
+    elektrode:state.electrode, elektrodeLabel:ELEC_LABEL[state.electrode],
+    prediksi:pred,
+    baseline:{...bl},
+    hasil:{ kProduct:prod.kProduct, aProduct:prod.aProduct,
+            kSensoris:prod.kPhases[2], aSensoris:prod.aPhases[2],
+            kRxn:prod.kRxn, aRxn:prod.aRxn, note:prod.note },
+    cocokK:matchK, cocokA:matchA, cocokSemua:bothMatch,
+    bukti, tafsir,
+    kualitasBukti:getKualitasBukti(),
+    hintDipakai:state.hintLevel[id] || 0,
+    waktuSelesai:new Date().toISOString()
+  };
+  state.records[id] = rec;
+  state.completedMisi.add(id);
+  state.running = false;
+  if (id + 1 > state.unlockedMisi && id < MISI.length) state.unlockedMisi = id + 1;
+
+  renderHasilBanding(rec, true);
+  renderMisiList(); updatePredStatus(); updateHintUI(); renderBuktiStars(); updateBandingBtn();
+  showToast('Misi ' + id + ' selesai.');
+});
+
+function renderHasilBanding(rec, animate){
+  const lblK = LABEL_PRODUK[rec.prediksi.k] || rec.prediksi.k;
+  const lblA = LABEL_PRODUK[rec.prediksi.a] || rec.prediksi.a;
+  const benarK = LABEL_PRODUK[rec.hasil.kProduct];
+  const benarA = LABEL_PRODUK[rec.hasil.aProduct];
+
+  diffContainer.innerHTML = `
+    <div class="diff-box">
+      <h3>Prediksi vs Hasil</h3>
+      <div class="diff-row">
+        <div class="lab">Katode</div>
+        <div class="val ${rec.cocokK?'ok':'bad'}">${lblK}</div>
+        <div class="val ok">${benarK}</div>
+      </div>
+      <div class="diff-row">
+        <div class="lab">Anode</div>
+        <div class="val ${rec.cocokA?'ok':'bad'}">${lblA}</div>
+        <div class="val ok">${benarA}</div>
+      </div>
+      <div class="diff-verdict ${rec.cocokSemua?'ok':'bad'}">
+        <span>${rec.cocokSemua?'✓':'✗'}</span>
+        <span>${rec.cocokSemua ? 'Prediksimu cocok dengan hasil pengamatan.'
+                              : 'Ada perbedaan. Cermati buktinya — itulah inti belajarnya.'}</span>
+      </div>
+    </div>
+  `;
+
+  // Refleksi keyakinan
+  const yakin = rec.prediksi.yakin || 3;
+  let refText = '', refPrompt = '';
+  if (yakin >= 4 && !rec.cocokSemua){
+    refText = `⚠️ Kamu merasa yakin (${yakin}/5) tapi prediksimu kurang tepat. Momen seperti ini paling berharga untuk belajar.`;
+    refPrompt = 'Apa yang membuatmu yakin? Bagian mana dari bukti yang terlewat?';
+  } else if (yakin <= 2 && rec.cocokSemua){
+    refText = `💡 Kamu ragu (${yakin}/5) tapi ternyata prediksimu benar. Kepercayaan dirimu bisa ditingkatkan!`;
+    refPrompt = 'Apa yang sebenarnya sudah kamu pahami tapi belum kamu percaya?';
+  } else if (yakin >= 4 && rec.cocokSemua){
+    refText = `✓ Kamu yakin (${yakin}/5) dan prediksimu benar. Penalaranmu solid.`;
+    refPrompt = 'Aturan apa yang kamu pakai untuk memprediksi? Tulis singkat.';
+  } else if (yakin <= 2 && !rec.cocokSemua){
+    refText = `📌 Kamu sudah merasa ragu (${yakin}/5) dan memang belum tepat. Wajar — sekarang coba cermati buktinya.`;
+    refPrompt = 'Setelah melihat bukti, apa yang seharusnya kamu perhatikan?';
+  } else {
+    refText = `Kamu memilih keyakinan ${yakin}/5.`;
+    refPrompt = 'Apa yang membuatmu memilih tingkat keyakinan itu?';
+  }
+
+  const savedRef = (state.reflection[rec.misiId] || {}).teks || '';
+  reflectionContainer.innerHTML = `
+    <div class="reflection-box">
+      <div class="rtitle">🪞 Refleksi Keyakinan</div>
+      <div class="rtext">${refText}</div>
+      <label class="fld" style="color:#8a6710">${refPrompt}</label>
+      <textarea id="refleksiText" placeholder="Tulis jawabanmu…">${escapeHtml(savedRef)}</textarea>
+      <div class="saved" id="refSaved" style="color:${savedRef?'var(--ok)':'#86977a'};font-size:11.5px;font-weight:700;margin-top:6px">
+        ${savedRef ? '✓ Tersimpan' : 'Belum diisi'}
+      </div>
+    </div>
+  `;
+  const refEl = document.getElementById('refleksiText');
+  if (refEl){
+    refEl.addEventListener('input', () => {
+      state.reflection[rec.misiId] = { teks: refEl.value };
+      const sv = document.getElementById('refSaved');
+      sv.textContent = refEl.value.trim() ? '✓ Tersimpan' : 'Belum diisi';
+      sv.style.color = refEl.value.trim() ? 'var(--ok)' : '#86977a';
+    });
+  }
+
+  rxnContainer.innerHTML = `
+    <div class="rxn-block">
+      <div class="rxn-label">Reaksi di Katode (−)</div>
+      <div class="rxn-line">${rec.hasil.kRxn}</div>
+      <div class="rxn-label" style="margin-top:8px">Reaksi di Anode (＋)</div>
+      <div class="rxn-line">${rec.hasil.aRxn}</div>
+    </div>
+  `;
+  rxnContainer.style.display = 'block';
+  noteBox.textContent = rec.hasil.note;
+  noteBox.style.display = 'block';
+  hasilCard.style.display = 'block';
+  btnNextMisi.style.display = 'block';
+  btnNextMisi.textContent = rec.misiId < MISI.length
+    ? '➜ Lanjut ke Misi ' + (rec.misiId + 1)
+    : '✓ Semua Misi Selesai — Lihat Papan Banding';
+  if (animate) hasilCard.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+btnNextMisi.addEventListener('click', () => {
+  const id = state.activeMisiId;
+  if (id < MISI.length) switchMisi(id + 1);
+  else openPapan();
+});
+
+/* ===== PAPAN BANDING ===== */
+function openPapan(){ renderPapan(); papanBg.classList.add('show'); }
+function renderPapan(){
+  const ids = Object.keys(state.records).map(Number).sort((a,b)=>a-b);
+  if (ids.length === 0){ papanEmpty.style.display = 'block'; papanBody.innerHTML = ''; }
+  else {
+    papanEmpty.style.display = 'none'; papanBody.innerHTML = '';
+    ids.forEach(id => {
+      const r = state.records[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="misi-col">${r.misiId}</td>
+        <td>${r.elektrolitName}</td>
+        <td>${r.elektrodeLabel}</td>
+        <td>${r.hasil.kSensoris}</td>
+        <td>${r.hasil.aSensoris}</td>
+        <td>
+          <span class="tag-badge ok">K:</span> ${LABEL_PRODUK[r.hasil.kProduct]}<br>
+          <span class="tag-badge ok">A:</span> ${LABEL_PRODUK[r.hasil.aProduct]}
+        </td>
+        <td><span class="tag-badge ${r.cocokSemua?'ok':'bad'}">${r.cocokSemua?'Cocok':'Beda'}</span></td>
+      `;
+      papanBody.appendChild(tr);
+    });
+  }
+  renderInduksi();
+}
+papanClose.addEventListener('click', () => papanBg.classList.remove('show'));
+papanBg.addEventListener('click', e => { if (e.target === papanBg) papanBg.classList.remove('show'); });
+
+function renderInduksi(){
+  const done3 = state.completedMisi.has(3);
+  const done5 = state.completedMisi.has(5);
+  let html = '';
+  if (done3 || done5){
+    html += `<div class="induksi-block"><h3>🧠 Pertanyaan Induksi Pola</h3>`;
+    if (done3){
+      html += `<div class="induksi-q">
+        <p>1. Bandingkan Misi 1 (CuSO₄ + C) dan Misi 3 (CuSO₄ + Cu). Elektrolitnya sama, tapi hasil anode berbeda. Apa yang membuat berbeda?</p>
+        <textarea id="ind1">${escapeHtml(state.induksi.q1)}</textarea>
+        <div class="saved" id="saved1">${state.induksi.q1?'✓ Tersimpan':''}</div>
+      </div>`;
+    }
+    if (done5){
+      html += `<div class="induksi-q">
+        <p>2. Lihat Papan Banding. Kapan air yang tereduksi di katode? Kapan air yang teroksidasi di anode?</p>
+        <textarea id="ind2">${escapeHtml(state.induksi.q2)}</textarea>
+        <div class="saved" id="saved2">${state.induksi.q2?'✓ Tersimpan':''}</div>
+      </div>
+      <div class="induksi-q">
+        <p>3. Mengapa hasil NaCl leburan (Misi 4) berbeda dari NaCl larutan (Misi 2)? Apa peran air?</p>
+        <textarea id="ind3">${escapeHtml(state.induksi.q3)}</textarea>
+        <div class="saved" id="saved3">${state.induksi.q3?'✓ Tersimpan':''}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  induksiContainer.innerHTML = html;
+  ['ind1','ind2','ind3'].forEach((id, idx) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const map = { ind1:'q1', ind2:'q2', ind3:'q3' };
+      state.induksi[map[id]] = el.value;
+      const saved = document.getElementById('saved'+(idx+1));
+      if (saved) saved.textContent = el.value.trim() ? '✓ Tersimpan' : '';
+    });
+  });
+}
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ===== REKAP ===== */
+function openRekap(){ renderRekap(); rekapBg.classList.add('show'); }
+function renderRekap(){
+  const ids = Object.keys(state.records).map(Number).sort((a,b)=>a-b);
+  const totalMisi = MISI.length;
+  const selesai = state.completedMisi.size;
+  const cocok = ids.filter(id => state.records[id].cocokSemua).length;
+  const rataBukti = selesai ? (ids.reduce((s,id)=> s + (state.records[id].kualitasBukti||0), 0)/selesai).toFixed(1) : '0';
+
+  rekapSummary.innerHTML = `
+    <div class="rekap-card"><div class="rk">Misi Selesai</div><div class="rv">${selesai} / ${totalMisi}</div></div>
+    <div class="rekap-card"><div class="rk">Prediksi Cocok</div><div class="rv">${cocok}</div></div>
+    <div class="rekap-card"><div class="rk">Rata-rata Bukti</div><div class="rv">${rataBukti} ★</div></div>
+    <div class="rekap-card"><div class="rk">Waktu Rekap</div><div class="rv" style="font-size:13px">${new Date().toLocaleString('id-ID')}</div></div>
+  `;
+
+  if (ids.length === 0){
+    rekapBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#86977a;padding:24px">Belum ada misi selesai.</td></tr>`;
+  } else {
+    rekapBody.innerHTML = '';
+    ids.forEach(id => {
+      const r = state.records[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="misi-col">${r.misiId}</td>
+        <td>${r.elektrolitName}<br><small style="color:var(--ink-2)">${r.elektrodeLabel}</small></td>
+        <td>${LABEL_PRODUK[r.prediksi.k]} / ${LABEL_PRODUK[r.prediksi.a]}</td>
+        <td>${LABEL_PRODUK[r.hasil.kProduct]} / ${LABEL_PRODUK[r.hasil.aProduct]}</td>
+        <td><span class="tag-badge ${r.cocokSemua?'ok':'bad'}">${r.cocokSemua?'✓':'✗'}</span></td>
+        <td style="max-width:220px">${escapeHtml(r.bukti)}</td>
+        <td style="max-width:220px">${escapeHtml(r.tafsir)}</td>
+        <td>${r.kualitasBukti} ★</td>
+      `;
+      rekapBody.appendChild(tr);
+    });
+  }
+  const ind = state.induksi;
+  let indHtml = '';
+  if (ind.q1) indHtml += `<p><b>Q1.</b> ${escapeHtml(ind.q1)}</p>`;
+  if (ind.q2) indHtml += `<p><b>Q2.</b> ${escapeHtml(ind.q2)}</p>`;
+  if (ind.q3) indHtml += `<p><b>Q3.</b> ${escapeHtml(ind.q3)}</p>`;
+  rekapInduksi.innerHTML = indHtml || '<em style="color:#86977a">Belum ada jawaban induksi.</em>';
+}
+rekapClose.addEventListener('click', () => rekapBg.classList.remove('show'));
+rekapBg.addEventListener('click', e => { if (e.target === rekapBg) rekapBg.classList.remove('show'); });
+
+btnExportJSON.addEventListener('click', () => {
+  const data = {
+    meta:{ aplikasi:'Lab Virtual Sel Elektrolisis', waktuExport:new Date().toISOString() },
+    state:{ activeMisiId:state.activeMisiId, unlockedMisi:state.unlockedMisi,
+            completedMisi:[...state.completedMisi].sort((a,b)=>a-b) },
+    predictions:state.predictions, records:state.records,
+    hintLevel:state.hintLevel, induksi:state.induksi, reflection:state.reflection
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'rekap-elektrolisis-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Rekap diunduh.');
+});
+btnPrint.addEventListener('click', () => window.print());
+
+document.getElementById('btnResetAll').addEventListener('click', () => {
+  if (!confirm('Hapus semua data sesi?')) return;
+  state.completedMisi = new Set();
+  state.predictions = {}; state.records = {}; state.hintLevel = {};
+  state.baseline = {}; state.bukti = {}; state.tafsir = {}; state.reflection = {};
+  state.induksi = { q1:'', q2:'', q3:'' };
+  state.unlockedMisi = 1; state.activeMisiId = 1;
+  switchMisi(1); updateHintUI(); renderMisiList();
+  showToast('Sesi direset.');
+});
+document.getElementById('btnPapan').addEventListener('click', openPapan);
+document.getElementById('btnRekap').addEventListener('click', openRekap);
+
+let toastTimer;
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+vRange.addEventListener('input', e => { state.voltage = +e.target.value; vv.textContent = state.voltage + ' V'; });
+
+setInterval(() => {
+  updateFaseFromProg();
+  updateBandingBtn();
+}, 350);
+
+state.activeMisiId = 1;
+switchMisi(1);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

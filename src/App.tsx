@@ -7,6 +7,8 @@ import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
 import { HelpCenterModal } from './features/help/HelpCenterModal';
+import { HelpModal } from './components/help/HelpModal';
+import { VirtualLabModal } from './features/virtualLab/VirtualLabModal';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { TeacherDashboard } from './features/teacher/TeacherDashboard';
 import type { UserProfile, StudentRecord } from './utils/studentRecords';
@@ -59,8 +61,14 @@ function App() {
   const [isLabSheetOpen, setIsLabSheetOpen] = useState<boolean>(false);
   const [selectedSubtopicId, setSelectedSubtopicId] = useState<string>('1.1');
 
+  // State modal Lab Virtual Interaktif (Media Bantu Siswa Memahami Materi)
+  const [isVirtualLabOpen, setIsVirtualLabOpen] = useState<boolean>(false);
+
   // State modal Pusat Bantuan (FAQ, XP, Reset, dsb)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
+
+  // State modal Tanya Guru / Kontak Tim Pendiri (dari commit c858d67)
+  const [isContactModalOpen, setIsContactModalOpen] = useState<boolean>(false);
 
   // State notifikasi toast melayang
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -299,6 +307,9 @@ function App() {
           if (tabId === 'help') {
             setIsHelpModalOpen(true);
           }
+          if (tabId === 'discuss') {
+            setIsContactModalOpen(true);
+          }
         }}
         onLogout={handleLogout}
         isTeacher={userProfile.role === 'teacher'}
@@ -322,6 +333,7 @@ function App() {
         <WelcomeBanner
           studentName={userProfile.name}
           onStartLearning={() => handleOpenStudySheet('1.1')}
+          onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
         />
 
         {/* 4 Kartu Bagian Belajar Utama */}
@@ -337,6 +349,7 @@ function App() {
             onLockedClick={(title) =>
               triggerToast(`${title} berstatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
             }
+            onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
           />
           <ChemistryStatsWidget />
         </div>
@@ -352,7 +365,13 @@ function App() {
         />
       )}
 
-      {/* 4. Modal Pusat Bantuan (FAQ, XP, Reset Progress, Tutorial, Kontak) */}
+      {/* 4. Lab Virtual Sel Elektrolisis (Media Bantu Praktikum & Pemahaman Reaksi Redoks) */}
+      <VirtualLabModal
+        isOpen={isVirtualLabOpen}
+        onClose={() => setIsVirtualLabOpen(false)}
+      />
+
+      {/* 5. Modal Pusat Bantuan (FAQ, XP, Reset Progress, Tutorial, Kontak) */}
       <HelpCenterModal
         isOpen={isHelpModalOpen}
         onClose={() => setIsHelpModalOpen(false)}
@@ -360,7 +379,16 @@ function App() {
         studentName={userProfile?.name}
       />
 
-      {/* 5. Notifikasi Toast */}
+      {/* 6. Modal Tanya Guru / Kontak Tim Pendiri (dari commit c858d67) */}
+      <HelpModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        onOpenTeacherView={
+          userProfile.role === 'teacher' ? () => setTeacherViewMode('dashboard') : undefined
+        }
+      />
+
+      {/* 7. Notifikasi Toast */}
       {toastMessage && (
         <div className="dash-toast" role="alert">
           <Lock size={16} className="dash-toast-icon" />
