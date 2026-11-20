@@ -8,7 +8,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '../config/firebase';
-import type { StudentProfile, TeacherProfile, UserProfile } from '../utils/studentRecords';
+import type { UserProfile } from '../utils/studentRecords';
 import { authStore } from '../utils/authStore';
 import { firebaseService } from './firebaseService';
 

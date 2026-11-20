@@ -1,19 +1,21 @@
 import React from 'react';
-import { Lock, Sparkles, BookOpen, Calculator, Layers, Award } from 'lucide-react';
+import { Lock, BookOpen, Calculator, Layers, Award, FlaskConical } from 'lucide-react';
 
 interface QuickAppsGridProps {
   onOpenStudySheet: (subtopicId?: string) => void;
   onLockedClick: (title: string) => void;
+  onOpenVirtualLab?: () => void;
 }
 
 /**
  * QuickAppsGrid: Mengikuti section "Other applications" pada gambar referensi.
- * Menampilkan grid 2 kolom dari kapsul modul lanjutan ("Belum Tersedia")
- * dan pedoman laboratorium aktif.
+ * Menampilkan grid 2 kolom dari modul lanjutan, lab virtual interaktif aktif,
+ * dan pedoman laboratorium.
  */
 export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
   onOpenStudySheet,
   onLockedClick,
+  onOpenVirtualLab,
 }) => {
   const items = [
     {
@@ -27,10 +29,11 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
     {
       id: 'ch3',
       label: 'Bab 3: Lab Virtual Reaksi',
-      icon: Sparkles,
-      badgeText: 'Belum Tersedia',
-      badgeClass: 'badge-locked',
-      locked: true,
+      icon: FlaskConical,
+      badgeText: '🟢 Siap Eksplorasi',
+      badgeClass: 'badge-lab-active',
+      locked: false,
+      isVirtualLab: true,
     },
     {
       id: 'ch4',
@@ -83,7 +86,9 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
               key={item.id}
               className={`capsule-app-card ${item.locked ? 'locked-app' : 'interactive-app'}`}
               onClick={() => {
-                if (item.locked) {
+                if (item.isVirtualLab && onOpenVirtualLab) {
+                  onOpenVirtualLab();
+                } else if (item.locked) {
                   onLockedClick(item.label);
                 } else if (item.targetSubtopic) {
                   onOpenStudySheet(item.targetSubtopic);
@@ -93,11 +98,22 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  if (item.locked) onLockedClick(item.label);
-                  else if (item.targetSubtopic) onOpenStudySheet(item.targetSubtopic);
+                  if (item.isVirtualLab && onOpenVirtualLab) {
+                    onOpenVirtualLab();
+                  } else if (item.locked) {
+                    onLockedClick(item.label);
+                  } else if (item.targetSubtopic) {
+                    onOpenStudySheet(item.targetSubtopic);
+                  }
                 }
               }}
-              title={item.locked ? `${item.label} (Belum Tersedia)` : `Buka ${item.label}`}
+              title={
+                item.isVirtualLab
+                  ? 'Buka Lab Virtual Interaktif Sel Elektrolisis'
+                  : item.locked
+                  ? `${item.label} (Belum Tersedia)`
+                  : `Buka ${item.label}`
+              }
             >
               <div className="app-card-left">
                 {item.locked ? (
@@ -118,4 +134,3 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
     </div>
   );
 };
-
