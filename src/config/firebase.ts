@@ -8,12 +8,12 @@ import { getAuth, type Auth } from 'firebase/auth';
  * menggunakan prefix standar Vite: import.meta.env.VITE_*
  */
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBQN7_V0APmtGvpkseueffu0-Ainpbc44Y',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'elektrolisis-6e70a.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'elektrolisis-6e70a',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'elektrolisis-6e70a.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '650810738084',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:650810738084:web:2b73da83aa51a9d5c32d31',
 };
 
 /**
