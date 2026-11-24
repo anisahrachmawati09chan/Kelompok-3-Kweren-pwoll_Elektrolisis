@@ -63,6 +63,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [regTeacherEmail, setRegTeacherEmail] = useState<string>('');
   const [regTeacherUsername, setRegTeacherUsername] = useState<string>('');
   const [regTeacherTitle, setRegTeacherTitle] = useState<string>('Guru Kimia SMA Kelas 12');
+  // S2-03-04: Kode otorisasi khusus guru untuk mencegah akses tidak sah
+  const [regTeacherAuthCode, setRegTeacherAuthCode] = useState<string>('');
+  const TEACHER_AUTH_CODE = 'GURU-CHEM-2026'; // Kode ini dibagikan oleh admin/dosen secara offline
 
   // Loading States
   const [isLoadingGoogle, setIsLoadingGoogle] = useState<boolean>(false);
@@ -281,6 +284,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         if (!cleanTeacherName) {
           setErrorMsg('Nama lengkap guru wajib diisi.');
+          return;
+        }
+
+        // S2-03-04: Validasi kode otorisasi guru sebelum pendaftaran
+        if (regTeacherAuthCode.trim() !== TEACHER_AUTH_CODE) {
+          setErrorMsg(
+            'Kode Otorisasi Guru tidak valid. Hubungi administrator sekolah untuk mendapatkan kode akses (GURU-CHEM-2026).'
+          );
           return;
         }
 
@@ -817,6 +828,27 @@ return (
                     value={regTeacherTitle}
                     onChange={(e) => setRegTeacherTitle(e.target.value)}
                   />
+                </div>
+
+                {/* S2-03-04: Kode Otorisasi Guru - wajib diisi */}
+                <div className="login-input-group">
+                  <label className="login-label">
+                    <ShieldCheck size={16} />
+                    <span>Kode Otorisasi Guru <span style={{ color: '#ef4444' }}>*</span>:</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="login-input"
+                    placeholder="Masukkan kode yang diberikan administrator"
+                    value={regTeacherAuthCode}
+                    onChange={(e) => {
+                      setRegTeacherAuthCode(e.target.value);
+                      if (errorMsg) setErrorMsg(null);
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Kode diberikan oleh administrator sekolah. Hubungi dosen/admin jika belum memiliki kode.
+                  </p>
                 </div>
 
                 <div className="login-input-group">

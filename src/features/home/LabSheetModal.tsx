@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   ArrowLeft,
@@ -20,6 +20,7 @@ interface LabSheetModalProps {
   onClose: () => void;
   questions?: QuizQuestion[];
   onScoreUpdate?: (score: number, maxScore: number) => void;
+  studentId?: string; // ID unik siswa untuk menyimpan draft per akun
 }
 
 /**
@@ -34,19 +35,80 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
   onClose,
   questions = DEFAULT_QUESTIONS,
   onScoreUpdate,
+  studentId = 'guest',
 }) => {
   const [activeTab, setActiveTab] = useState<string>(initialSubtopicId);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Key untuk draft per siswa, agar tidak bercampur antar akun
+  const DRAFT_KEY = `chemverse_quiz_draft_${studentId}`;
+
+  // Muat draft jawaban dari localStorage saat modal dibuka
+  const loadDraft = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          mc: parsed.mc as Record<string, string> || {},
+          tf: parsed.tf as Record<string, Record<number, 'benar' | 'salah' | null>> || {},
+        };
+      }
+    } catch { /* abaikan error parse */ }
+    return { mc: {}, tf: {} };
+  }, [DRAFT_KEY]);
+
+  const draft = loadDraft();
 
   // State jawaban pilihan ganda dinamis (qId -> 'A' | 'B' | dll)
-  const [mcAnswers, setMcAnswers] = useState<Record<string, string>>({});
+  const [mcAnswers, setMcAnswers] = useState<Record<string, string>>(draft.mc);
 
   // State jawaban tabel benar-salah dinamis (qId -> { num: 'benar' | 'salah' })
-  const [tfAnswers, setTfAnswers] = useState<Record<string, Record<number, 'benar' | 'salah' | null>>>({});
+  const [tfAnswers, setTfAnswers] = useState<Record<string, Record<number, 'benar' | 'salah' | null>>>(draft.tf);
+
+  // Simpan draft ke localStorage setiap kali jawaban berubah
+  const saveDraft = useCallback(
+    (mc: Record<string, string>, tf: Record<string, Record<number, 'benar' | 'salah' | null>>) => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ mc, tf }));
+      } catch { /* abaikan error storage */ }
+    },
+    [DRAFT_KEY]
+  );
+
+  // Fokus ke dialog saat terbuka (aksesibilitas) & tangkap tombol Escape
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (el) el.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+      // Focus trap: jaga fokus di dalam dialog
+      if (e.key === 'Tab' && el) {
+        const focusable = el.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+          if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   // Handler memilih opsi pilihan ganda
   const handleSelectMCOption = (questionId: string, optKey: string) => {
     const updated = { ...mcAnswers, [questionId]: optKey };
     setMcAnswers(updated);
+    saveDraft(updated, tfAnswers);
     calcAndNotifyScore(updated, tfAnswers);
   };
 
@@ -56,6 +118,7 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
     const updatedQ = { ...prevQ, [statementNum]: value };
     const updatedAll = { ...tfAnswers, [questionId]: updatedQ };
     setTfAnswers(updatedAll);
+    saveDraft(mcAnswers, updatedAll);
     calcAndNotifyScore(mcAnswers, updatedAll);
   };
 
@@ -89,6 +152,8 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
   const handleResetQuiz = () => {
     setMcAnswers({});
     setTfAnswers({});
+    // Hapus juga draft yang tersimpan agar skor tidak tercampur
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* abaikan */ }
     if (onScoreUpdate) {
       onScoreUpdate(0, questions.length);
     }
@@ -116,7 +181,7 @@ export const LabSheetModal: React.FC<LabSheetModalProps> = ({
   ];
 
   return (
-    <div className="lab-modal-backdrop" role="dialog" aria-modal="true">
+    <div className="lab-modal-backdrop" role="dialog" aria-modal="true" aria-label="Lembar Belajar Dasar Elektrokimia" ref={dialogRef} tabIndex={-1}>
       <div className="lab-modal-window">
         {/* Header Lembar Kerja */}
         <div className="lab-modal-header">

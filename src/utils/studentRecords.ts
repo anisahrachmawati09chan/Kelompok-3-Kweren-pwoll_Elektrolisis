@@ -5,6 +5,7 @@
 
 export interface StudentRecord {
   id: string;
+  uid?: string; // Firebase Auth UID untuk isolasi data unik per akun
   name: string;
   className: string;
   loginTime: string;
@@ -12,6 +13,8 @@ export interface StudentRecord {
   maxScore: number;
   status: 'Sedang Belajar' | 'Selesai Latihan';
   completedQuestionsCount: number;
+  attempts?: { attemptId: string; timestamp: string; score: number; maxScore: number }[];
+  instrumentVersion?: string;
 }
 
 export interface StudentProfile {
@@ -95,11 +98,14 @@ export const studentRecordStore = {
     return INITIAL_STUDENT_RECORDS;
   },
 
-  recordLogin(name: string, className: string): StudentRecord[] {
+  recordLogin(name: string, className: string, uid?: string): StudentRecord[] {
     const list = this.getAll();
-    const existingIndex = list.findIndex(
-      (s) => s.name.toLowerCase() === name.toLowerCase() && s.className === className
-    );
+    // Cari berdasarkan uid (unik) jika ada, fallback ke nama+kelas
+    const existingIndex = uid
+      ? list.findIndex((s) => s.uid === uid)
+      : list.findIndex(
+          (s) => s.name.toLowerCase() === name.toLowerCase() && s.className === className
+        );
 
     const now = new Date();
     const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
@@ -111,9 +117,11 @@ export const studentRecordStore = {
 
     if (existingIndex >= 0) {
       list[existingIndex].loginTime = timeStr;
+      if (uid) list[existingIndex].uid = uid;
     } else {
       list.unshift({
-        id: `std-${Date.now()}`,
+        id: uid ? `std-${uid.slice(0, 8)}` : `std-${Date.now()}`,
+        uid,
         name,
         className,
         loginTime: timeStr,
@@ -121,6 +129,8 @@ export const studentRecordStore = {
         maxScore: 4,
         status: 'Sedang Belajar',
         completedQuestionsCount: 0,
+        attempts: [],
+        instrumentVersion: 'v1.0',
       });
     }
 
@@ -135,15 +145,25 @@ export const studentRecordStore = {
     return list;
   },
 
-  updateScore(name: string, score: number, maxScore: number = 4): StudentRecord[] {
+  updateScore(id: string, score: number, maxScore: number = 4): StudentRecord[] {
     const list = this.getAll();
-    const existing = list.find((s) => s.name.toLowerCase() === name.toLowerCase());
+    // Cari berdasarkan id unik atau uid, fallback ke nama
+    const existing = list.find((s) => s.id === id || s.uid === id || s.name.toLowerCase() === id.toLowerCase());
 
     if (existing) {
       existing.score = score;
       existing.maxScore = maxScore;
       existing.completedQuestionsCount = Math.max(existing.completedQuestionsCount, score);
       existing.status = score >= maxScore ? 'Selesai Latihan' : 'Sedang Belajar';
+
+      // Tambahkan ke riwayat percobaan
+      if (!existing.attempts) existing.attempts = [];
+      existing.attempts.push({
+        attemptId: `att-${Date.now()}`,
+        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+        score,
+        maxScore,
+      });
 
       try {
         if (typeof window !== 'undefined' && window.localStorage) {

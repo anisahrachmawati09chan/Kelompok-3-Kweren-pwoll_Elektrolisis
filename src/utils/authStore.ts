@@ -70,13 +70,16 @@ export const authStore = {
     return INITIAL_ACCOUNTS;
   },
 
-  saveAccounts(accounts: RegisteredAccount[]): void {
+  saveAccounts(accounts: RegisteredAccount[]): boolean {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(accounts));
+        return true;
       }
+      return false;
     } catch (err) {
       console.warn('Gagal menyimpan akun terdaftar:', err);
+      return false;
     }
   },
 
@@ -133,7 +136,14 @@ export const authStore = {
     };
 
     accounts.push(newAccount);
-    this.saveAccounts(accounts);
+    const saved = this.saveAccounts(accounts);
+
+    if (!saved) {
+      return {
+        success: false,
+        message: 'Gagal menyimpan data akun ke penyimpanan browser. Periksa apakah penyimpanan lokal diizinkan.',
+      };
+    }
 
     return {
       success: true,

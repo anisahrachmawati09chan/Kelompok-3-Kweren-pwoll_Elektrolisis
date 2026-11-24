@@ -265,13 +265,13 @@ export const firebaseAuthService = {
           });
         }
 
-        // Simpan juga ke cache lokal
+        // Simpan ke cache lokal TANPA password (Firebase Auth mengelola kredensial secara aman)
         authStore.register({
           role,
           name,
           username: email.split('@')[0],
           email,
-          password,
+          password: '', // Tidak simpan plaintext password untuk akun Firebase
           className,
           title,
         });

@@ -205,7 +205,7 @@ function App() {
    */
   const handleSyncCloud = async () => {
     if (!isFirebaseConfigured) {
-      triggerToast('Firebase belum terhubung. Periksa konfigurasi di .env.local.');
+      triggerToast('⚠️ Firebase belum terhubung. Periksa konfigurasi di .env.local.');
       return;
     }
     triggerToast('Menghubungkan ke Cloud Firestore...');
@@ -214,9 +214,15 @@ function App() {
       setStudents(cloudStudents);
       const cloudQuestions = await firebaseService.fetchQuestionsFromCloud();
       setQuestions(cloudQuestions);
-      triggerToast('Sinkronisasi Cloud Firestore berhasil!');
+      // S2-03-06: Periksa apakah data benar-benar dari cloud atau dari fallback lokal
+      const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
+      if (isOnline) {
+        triggerToast('✅ Sinkronisasi Cloud Firestore berhasil!');
+      } else {
+        triggerToast('📴 Mode Offline: Menggunakan data lokal (Firestore tidak terhubung). Hubungkan internet untuk sinkronisasi.');
+      }
     } catch {
-      triggerToast('Gagal menyinkronkan data dari Cloud Firestore.');
+      triggerToast('❌ Gagal menyinkronkan data dari Cloud Firestore. Data lokal tetap digunakan.');
     }
   };
 

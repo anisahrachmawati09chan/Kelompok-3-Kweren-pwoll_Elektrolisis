@@ -99,14 +99,16 @@ export const firebaseService = {
     }
 
     try {
-      // Buat ID dokumen yang konsisten berdasarkan nama siswa
-      const cleanDocId = student.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      const studentDocRef = doc(db, COLLECTION_STUDENTS, cleanDocId);
+      // Gunakan student.id (unik per akun) sebagai Firestore document ID
+      // untuk mencegah tabrakan data siswa yang memiliki nama sama
+      const docId = student.id || `std_${student.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+      const studentDocRef = doc(db, COLLECTION_STUDENTS, docId);
 
       await setDoc(
         studentDocRef,
         {
           id: student.id,
+          uid: student.uid || null,
           name: student.name,
           className: student.className,
           loginTime: student.loginTime,
@@ -114,6 +116,8 @@ export const firebaseService = {
           maxScore: student.maxScore,
           status: student.status,
           completedQuestionsCount: student.completedQuestionsCount,
+          attempts: student.attempts || [],
+          instrumentVersion: student.instrumentVersion || 'v1.0',
           updatedAt: serverTimestamp(),
         },
         { merge: true }

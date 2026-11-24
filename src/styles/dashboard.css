@@ -43,6 +43,9 @@
   color: var(--dash-text-dark);
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
+  /* S2-03-08: Cegah horizontal overflow pada mobile */
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* --------------------------------------------------------------------------
@@ -933,8 +936,12 @@
   
   .dashboard-main {
     margin-left: 60px;
+    /* S2-03-08: Pastikan lebar tidak melewati viewport pada 375px */
     width: calc(100% - 60px);
+    max-width: calc(100vw - 60px);
     padding: 1rem 1rem 2rem 1rem;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
   
   .dashboard-topbar {
@@ -2674,6 +2681,40 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.65rem;
+  }
+}
+
+/* ==========================================================================
+   S2-03-08: Global overflow containment untuk mobile 375px
+   Mencegah horizontal scroll pada semua viewport kecil
+   ========================================================================== */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Tabel di dalam dashboard agar tidak melampaui lebar kontainer pada mobile */
+@media (max-width: 480px) {
+  .teacher-table-wrapper,
+  .students-table-container,
+  [class*="table-wrapper"],
+  [class*="table-container"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  table {
+    min-width: 480px;
+  }
+
+  .dashboard-main {
+    padding: 0.75rem 0.75rem 2rem 0.75rem;
   }
 }
 
