@@ -2487,3 +2487,193 @@
     justify-content: space-between;
   }
 }
+
+/* ==========================================================================
+   Home Electrolysis Simulation - Bahan Animasi Belajar di Beranda
+   ========================================================================== */
+.home-simulation-section {
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.simulation-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.simulation-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 280px;
+}
+
+.simulation-badge-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.simulation-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  margin-bottom: 0.35rem;
+}
+
+.simulation-tag-pill .live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #10b981;
+  margin-left: 0.2rem;
+  animation: pulseGreen 2s infinite;
+}
+
+.simulation-tag-pill .live-text {
+  font-weight: 800;
+  color: #059669;
+}
+
+.simulation-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--dash-text-dark, #1e1b4b);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.01em;
+}
+
+.simulation-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 750px;
+}
+
+.simulation-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.simulation-ctrl-btn {
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.home-simulation-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.simulation-frame-wrapper {
+  width: 100%;
+  height: 680px;
+  position: relative;
+  background-color: #fbf8ec;
+}
+
+.home-simulation-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.simulation-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  color: #334155;
+}
+
+.summary-rule-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.45;
+}
+
+.summary-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.summary-dot.katode {
+  background-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.summary-dot.anode {
+  background-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+@media (max-width: 992px) {
+  .simulation-frame-wrapper {
+    height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .simulation-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .simulation-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .simulation-frame-wrapper {
+    height: 520px;
+  }
+  .simulation-summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+}
+

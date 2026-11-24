@@ -3,6 +3,7 @@ import { Sidebar } from './components/dashboard/Sidebar';
 import { TopNavbar } from './components/dashboard/TopNavbar';
 import { WelcomeBanner } from './components/dashboard/WelcomeBanner';
 import { LearningCardsRow } from './components/dashboard/LearningCardsRow';
+import { HomeElectrolysisSimulation } from './components/dashboard/HomeElectrolysisSimulation';
 import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
@@ -341,6 +342,11 @@ function App() {
             <LearningCardsRow
               onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
               onSeeAll={() => handleOpenStudySheet('1.1')}
+            />
+
+            {/* BAHAN ANIMASI BELAJAR INTERAKTIF DI BERANDA */}
+            <HomeElectrolysisSimulation
+              onOpenFullLab={() => setIsVirtualLabOpen(true)}
             />
 
             {/* Baris Bawah: Modul Lanjutan & Statistik Kimia */}
