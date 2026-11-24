@@ -1,5 +1,4 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kelompok-3-kweren-pwoll-elektrolisis",
   "compatibility_date": "2026-11-24",
   "assets": {
