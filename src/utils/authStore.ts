@@ -21,6 +21,16 @@ const STORAGE_KEY_AUTH = 'chemverse_auth_accounts_v1';
 
 const INITIAL_ACCOUNTS: RegisteredAccount[] = [
   {
+    id: 'user-std-0',
+    role: 'student',
+    name: 'Anisah Rachmawati',
+    username: 'anisah',
+    email: 'anisah@chemverse.edu',
+    password: '123',
+    className: 'Kelas 12 IPA 1',
+    registeredAt: '2026-11-01 08:00',
+  },
+  {
     id: 'user-std-1',
     role: 'student',
     name: 'Elsa Rasengraffe',

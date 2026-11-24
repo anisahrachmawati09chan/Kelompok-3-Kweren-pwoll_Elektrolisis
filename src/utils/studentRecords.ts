@@ -39,6 +39,18 @@ const STORAGE_KEY_STUDENTS = 'chemverse_students_list_v2';
 
 const INITIAL_STUDENT_RECORDS: StudentRecord[] = [
   {
+    id: 'std-0',
+    name: 'Anisah Rachmawati',
+    className: 'Kelas 12 IPA 1',
+    loginTime: '2026-11-24 10:00',
+    score: 4,
+    maxScore: 4,
+    status: 'Selesai Latihan',
+    completedQuestionsCount: 4,
+    attempts: [],
+    instrumentVersion: 'v1.0',
+  },
+  {
     id: 'std-1',
     name: 'Elsa Rasengraffe',
     className: 'Kelas 12 IPA 1',

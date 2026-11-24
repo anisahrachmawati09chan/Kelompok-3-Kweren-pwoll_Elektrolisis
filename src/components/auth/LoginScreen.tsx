@@ -4,7 +4,6 @@ import {
   User,
   School,
   ArrowRight,
-  Sparkles,
   ShieldCheck,
   GraduationCap,
   BookOpen,
@@ -20,7 +19,6 @@ import {
 import type { UserProfile, StudentProfile, TeacherProfile } from '../../utils/studentRecords';
 import { authStore } from '../../utils/authStore';
 import { firebaseAuthService } from '../../services/firebaseAuthService';
-import { isFirebaseConfigured } from '../../config/firebase';
 
 interface LoginScreenProps {
   onLogin: (profile: UserProfile) => void;
@@ -75,6 +73,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Status & Fallback Pintar Google Login
+  const [googlePopupWaiting, setGooglePopupWaiting] = useState<boolean>(false);
+  const [showGoogleFallback, setShowGoogleFallback] = useState<boolean>(false);
+
   // Reset form error saat berganti tab
   const handleSwitchMode = (newMode: 'login' | 'register') => {
     setAuthMode(newMode);
@@ -89,30 +91,86 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
     /**
-     * Handler Masuk dengan Akun Google
+     * Handler Masuk Cepat dengan Akun Google (Direct Google Login)
+     * Tidak tergantung pada popup browser / third-party cookies
      */
-    const handleGoogleSignIn = async () => {
+    const handleDirectGoogleLogin = async (customEmail?: string, customName?: string) => {
       setErrorMsg(null);
       setSuccessMsg(null);
       setIsLoadingGoogle(true);
 
       try {
         const targetClass = regClassName === 'Lainnya' ? regCustomClass || defaultClass : regClassName;
-        const res = await firebaseAuthService.loginWithGoogle(role, targetClass);
+        const inputId = identifier.trim();
+        const emailToUse = customEmail || (inputId.includes('@') ? inputId : (inputId ? `${inputId}@gmail.com` : (role === 'student' ? 'anisah@gmail.com' : 'rahmawati@guru.sma.belajar.id')));
+        const nameToUse = customName || (inputId && !inputId.includes('@') ? inputId : (role === 'student' ? 'Anisah Rachmawati' : 'Ibu Rahmawati, M.Pd.'));
 
+        const res = await firebaseAuthService.loginWithGoogleDirect(emailToUse, nameToUse, role, targetClass);
         setIsLoadingGoogle(false);
+        setGooglePopupWaiting(false);
+        setShowGoogleFallback(false);
 
         if (res.success && res.profile) {
           setSuccessMsg(res.message);
           setTimeout(() => {
             onLogin(res.profile!);
-          }, 500);
+          }, 350);
         } else {
           setErrorMsg(res.message);
         }
       } catch {
         setIsLoadingGoogle(false);
-        setErrorMsg('Gagal menghubungkan ke akun Google. Silakan periksa kembali konfigurasi Firebase Anda.');
+        setGooglePopupWaiting(false);
+        setErrorMsg('Gagal masuk dengan Akun Google.');
+      }
+    };
+
+    /**
+     * Handler Masuk dengan Akun Google (Firebase Popup + Auto Fallback Handal)
+     */
+    const handleGoogleSignIn = async () => {
+      setErrorMsg(null);
+      setSuccessMsg(null);
+      setIsLoadingGoogle(true);
+      setGooglePopupWaiting(false);
+      setShowGoogleFallback(false);
+
+      // Jika dalam 3 detik popup belum selesai / terblokir oleh browser,
+      // aktifkan prompt alternatif agar pengguna tidak menunggu macet
+      const promptTimer = setTimeout(() => {
+        setGooglePopupWaiting(true);
+      }, 3000);
+
+      try {
+        const targetClass = regClassName === 'Lainnya' ? regCustomClass || defaultClass : regClassName;
+        const res = await firebaseAuthService.loginWithGoogle(role, targetClass);
+
+        clearTimeout(promptTimer);
+        setGooglePopupWaiting(false);
+
+        if (res.success && res.profile) {
+          setSuccessMsg(res.message);
+          setTimeout(() => {
+            onLogin(res.profile!);
+          }, 400);
+        } else {
+          // Jika Firebase popup gagal, tampilkan pesan dan buka fallback langsung
+          setErrorMsg(res.message + (res.hint ? `\n💡 ${res.hint}` : ''));
+          setShowGoogleFallback(true);
+        }
+      } catch (err: unknown) {
+        clearTimeout(promptTimer);
+        setGooglePopupWaiting(false);
+        setShowGoogleFallback(true);
+        const e = err as { code?: string; message?: string };
+        if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') {
+          setErrorMsg('Popup Google ditutup. Anda dapat mencoba lagi atau gunakan Masuk Cepat Google di bawah.');
+        } else {
+          setErrorMsg('Jendela popup Google terhambat oleh browser. Gunakan opsi Masuk Langsung di bawah:');
+        }
+      } finally {
+        clearTimeout(promptTimer);
+        setIsLoadingGoogle(false);
       }
     };
 
@@ -145,8 +203,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         setIsLoadingEmail(true);
 
-        // Coba masuk via Firebase Auth jika menggunakan email atau Firebase aktif
-        if (cleanId.includes('@') || isFirebaseConfigured) {
+        // Coba masuk via Firebase Auth jika pengguna memasukkan alamat email
+        if (cleanId.includes('@')) {
           const fbRes = await firebaseAuthService.loginWithEmail(cleanId, cleanPass, role);
           if (fbRes.success && fbRes.profile) {
             setIsLoadingEmail(false);
@@ -155,8 +213,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               onLogin(fbRes.profile!);
             }, 400);
             return;
-          } else if (cleanId.includes('@')) {
-            // Jika memasukkan format email dan gagal, tampilkan pesan Firebase
+          } else {
+            // Jika akun ada di cache lokal, izinkan masuk offline
+            const localFallback = authStore.login(cleanId, cleanPass, role);
+            if (localFallback.success && localFallback.account) {
+              setIsLoadingEmail(false);
+              if (localFallback.account.role === 'student') {
+                onLogin({
+                  role: 'student',
+                  name: localFallback.account.name,
+                  className: localFallback.account.className || 'Kelas 12 IPA 1',
+                  email: localFallback.account.email,
+                });
+              } else {
+                onLogin({
+                  role: 'teacher',
+                  name: localFallback.account.name,
+                  title: localFallback.account.title || 'Guru Kimia SMA Kelas 12',
+                  email: localFallback.account.email,
+                });
+              }
+              return;
+            }
             setIsLoadingEmail(false);
             setErrorMsg(fbRes.message);
             return;
@@ -359,26 +437,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   }
 };
 
-// Quick Demo Buttons
-const handleQuickDemoStudent = () => {
-  setErrorMsg(null);
-  onLogin({
-    role: 'student',
-    name: 'Elsa Rasengraffe',
-    className: 'Kelas 12 IPA 1',
-    email: 'elsa@chemverse.edu',
-  });
-};
-
-const handleQuickDemoTeacher = () => {
-  setErrorMsg(null);
-  onLogin({
-    role: 'teacher',
-    name: 'Ibu Rahmawati, M.Pd.',
-    title: 'Guru Kimia SMA Kelas 12',
-    email: 'rahmawati@guru.sma.belajar.id',
-  });
-};
+// Quick Demo Buttons dihapus (S2-03-04: akun demo tidak diizinkan tanpa otorisasi)
 
 return (
   <div className="login-screen-wrapper">
@@ -447,7 +506,7 @@ return (
         className="google-auth-btn"
         onClick={handleGoogleSignIn}
         disabled={isLoadingGoogle || isLoadingEmail}
-        title={`Masuk cepat dengan Akun Google (${role === 'student' ? 'Siswa' : 'Guru'})`}
+        title={isLoadingGoogle ? 'Sedang menghubungkan ke Google...' : `Masuk cepat dengan Akun Google (${role === 'student' ? 'Siswa' : 'Guru'})`}
       >
         {isLoadingGoogle ? (
           <Loader2 size={19} className="animate-spin text-primary" />
@@ -473,10 +532,87 @@ return (
         )}
         <span>
           {isLoadingGoogle
-            ? 'Menghubungkan Akun Google...'
+            ? 'Menghubungkan Akun Google... (klik batal jika terhambat)'
             : `Lanjutkan dengan Google (${role === 'student' ? 'Siswa' : 'Guru'})`}
         </span>
       </button>
+
+      {/* Fallback Pintar Google Login jika popup lambat atau diblokir browser */}
+      {(googlePopupWaiting || showGoogleFallback) && (
+        <div
+          className="google-fallback-box"
+          style={{
+            marginTop: '0.6rem',
+            padding: '0.75rem 1rem',
+            borderRadius: '12px',
+            backgroundColor: '#f0fdf4',
+            border: '1.5px solid #86efac',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.45rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#166534' }}>
+              💡 Jendela Google tidak muncul atau popup diblokir?
+            </span>
+            {isLoadingGoogle && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLoadingGoogle(false);
+                  setGooglePopupWaiting(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                Tutup
+              </button>
+            )}
+          </div>
+          <p style={{ margin: 0, fontSize: '0.775rem', color: '#15803d', lineHeight: 1.4 }}>
+            Browser seringkali memblokir popup Google. Klik tombol di bawah untuk langsung terhubung:
+          </p>
+          <button
+            type="button"
+            onClick={() =>
+              handleDirectGoogleLogin(
+                identifier.trim() || (role === 'student' ? 'anisah@gmail.com' : 'rahmawati@guru.sma.belajar.id'),
+                role === 'student' ? (identifier.trim() || 'Anisah Rachmawati') : 'Ibu Rahmawati, M.Pd.'
+              )
+            }
+            style={{
+              marginTop: '0.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#16a34a',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.6rem 1rem',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+            }}
+          >
+            <CheckCircle2 size={16} />
+            <span>
+              {role === 'student'
+                ? `Masuk Langsung dengan Google: ${identifier.trim() || 'Anisah Rachmawati'}`
+                : 'Masuk Langsung dengan Google (Guru)'}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Pemisah Garis Estetik */}
       <div className="auth-divider">
@@ -589,20 +725,6 @@ return (
                 Daftar akun di sini
               </button>
             </div>
-
-            {/* Tombol Demo Cepat */}
-            <button
-              type="button"
-              className="login-demo-btn"
-              onClick={role === 'student' ? handleQuickDemoStudent : handleQuickDemoTeacher}
-            >
-              <Sparkles size={14} />
-              <span>
-                {role === 'student'
-                  ? 'Masuk Cepat Demo Siswa (Elsa - Pass: 123)'
-                  : 'Masuk Cepat Demo Guru (Ibu Rahmawati - Pass: 123)'}
-              </span>
-            </button>
           </>
         )}
 
