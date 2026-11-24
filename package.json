@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy": "tsc -b && vite build",
+    "pages:build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
