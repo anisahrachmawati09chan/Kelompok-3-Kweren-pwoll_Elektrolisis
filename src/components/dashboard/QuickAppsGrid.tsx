@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, BookOpen, Calculator, Layers, Award, FlaskConical } from 'lucide-react';
+import { Lock, Calculator, Layers, Award, FlaskConical } from 'lucide-react';
 
 interface QuickAppsGridProps {
   onOpenStudySheet: (subtopicId?: string) => void;
@@ -8,9 +8,8 @@ interface QuickAppsGridProps {
 }
 
 /**
- * QuickAppsGrid: Mengikuti section "Other applications" pada gambar referensi.
- * Menampilkan grid 2 kolom dari modul lanjutan, lab virtual interaktif aktif,
- * dan pedoman laboratorium.
+ * QuickAppsGrid: Mengikuti section "Other applications" pada gambar referensi (Image 1).
+ * Menampilkan grid 2 kolom dari 4 rencana modul elektrokimia dan lab virtual.
  */
 export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
   onOpenStudySheet,
@@ -51,24 +50,6 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
       badgeClass: 'badge-locked',
       locked: true,
     },
-    {
-      id: 'krao',
-      label: 'Aturan Emas KRAO',
-      icon: BookOpen,
-      badgeText: 'Pedoman',
-      badgeClass: 'badge-gold',
-      locked: false,
-      targetSubtopic: '1.1',
-    },
-    {
-      id: 'panic',
-      label: 'Mnemonik PANIC',
-      icon: BookOpen,
-      badgeText: 'Fase F',
-      badgeClass: 'badge-pro',
-      locked: false,
-      targetSubtopic: '1.2',
-    },
   ];
 
   return (
@@ -90,8 +71,8 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
                   onOpenVirtualLab();
                 } else if (item.locked) {
                   onLockedClick(item.label);
-                } else if (item.targetSubtopic) {
-                  onOpenStudySheet(item.targetSubtopic);
+                } else if (onOpenStudySheet) {
+                  onOpenStudySheet();
                 }
               }}
               role="button"
@@ -102,8 +83,8 @@ export const QuickAppsGrid: React.FC<QuickAppsGridProps> = ({
                     onOpenVirtualLab();
                   } else if (item.locked) {
                     onLockedClick(item.label);
-                  } else if (item.targetSubtopic) {
-                    onOpenStudySheet(item.targetSubtopic);
+                  } else if (onOpenStudySheet) {
+                    onOpenStudySheet();
                   }
                 }
               }}

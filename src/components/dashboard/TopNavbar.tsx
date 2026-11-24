@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, User, LogOut, BookOpen } from 'lucide-react';
+import { Search, Bell, ChevronDown, User, LogOut, BookOpen, MessageSquare, HelpCircle } from 'lucide-react';
 import type { UserProfile } from '../../utils/studentRecords';
 
 interface TopNavbarProps {
@@ -9,11 +9,14 @@ interface TopNavbarProps {
   userProfile: UserProfile;
   onLogout?: () => void;
   onOpenTeacherDashboard?: () => void;
+  onOpenTeacher?: () => void;
+  isTeacherActive?: boolean;
+  onOpenHelp?: () => void;
 }
 
 /**
- * TopNavbar bergaya pill rounded seperti gambar referensi.
- * Menampilkan pencarian konsep kimia, notifikasi materi, dan profil pengguna (Siswa atau Guru).
+ * TopNavbar bergaya pill rounded seperti gambar referensi (Image 1 & Image 2).
+ * Menampilkan pencarian konsep kimia, shortcut Tanya Guru, Panel Guru, Bantuan, notifikasi, dan profil pengguna.
  */
 export const TopNavbar: React.FC<TopNavbarProps> = ({
   searchQuery,
@@ -22,6 +25,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   userProfile,
   onLogout,
   onOpenTeacherDashboard,
+  onOpenTeacher,
+  isTeacherActive = false,
+  onOpenHelp,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
@@ -51,8 +57,22 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         />
       </div>
 
-      {/* Sisi Kanan: Tombol Guru (Jika Guru), Notifikasi & Profil */}
+      {/* Sisi Kanan: Tanya Guru, Panel Guru (Jika Guru), Bantuan, Notifikasi & Profil */}
       <div className="topbar-right">
+        {/* Tombol Tanya Guru */}
+        {onOpenTeacher && (
+          <button
+            type="button"
+            className={`topbar-teacher-pill-btn ${isTeacherActive ? 'active' : ''}`}
+            onClick={onOpenTeacher}
+            title="Tanya dengan Guru & Ruang Diskusi Terbimbing"
+          >
+            <MessageSquare size={16} />
+            <span>Tanya Guru</span>
+            <span className="teacher-btn-dot" />
+          </button>
+        )}
+
         {/* Shortcut Dashboard Guru jika pengguna adalah Guru */}
         {isTeacher && onOpenTeacherDashboard && (
           <button
@@ -63,6 +83,19 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           >
             <BookOpen size={15} />
             <span>Panel Guru</span>
+          </button>
+        )}
+
+        {/* Tombol Pusat Bantuan & Tim Pendiri */}
+        {onOpenHelp && (
+          <button
+            type="button"
+            className="notification-pill-btn"
+            title="Pusat Bantuan & Kontak Tim Pendiri"
+            aria-label="Pusat Bantuan"
+            onClick={onOpenHelp}
+          >
+            <HelpCircle size={18} />
           </button>
         )}
 
@@ -152,6 +185,20 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 </button>
               )}
 
+              {onOpenTeacher && (
+                <button
+                  type="button"
+                  className="dropdown-menu-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onOpenTeacher();
+                  }}
+                >
+                  <MessageSquare size={16} />
+                  <span>Tanya Guru & Ruang Diskusi</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 className="dropdown-menu-item"
@@ -163,6 +210,20 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <User size={16} />
                 <span>Buka Lembar Kerja Belajar</span>
               </button>
+
+              {onOpenHelp && (
+                <button
+                  type="button"
+                  className="dropdown-menu-item"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onOpenHelp();
+                  }}
+                >
+                  <HelpCircle size={16} />
+                  <span>Pusat Bantuan & Kontak Pendiri</span>
+                </button>
+              )}
 
               {onLogout && (
                 <button

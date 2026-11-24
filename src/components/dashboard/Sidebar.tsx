@@ -25,9 +25,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const baseNavItems = [
     { id: 'home', label: 'Beranda Utama', icon: Home },
     { id: 'modules', label: 'Modul Belajar', icon: LayoutGrid },
-    { id: 'discuss', label: 'Tanya Konsep', icon: MessageSquare },
+    { id: 'discuss', label: 'Tanya Guru & Ruang Diskusi', icon: MessageSquare, hasDot: true },
     { id: 'history', label: 'Riwayat & Progres', icon: Clock },
-    { id: 'help', label: 'Panduan PRD', icon: HelpCircle },
+    { id: 'help', label: 'Pusat Bantuan & Tim Pendiri', icon: HelpCircle },
   ];
 
   const navItems = isTeacher
@@ -67,6 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-label={item.label}
                 >
                   <Icon size={20} />
+                  {item.hasDot && <span className="sidebar-teacher-dot" />}
                 </button>
               </li>
             );

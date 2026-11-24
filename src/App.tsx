@@ -7,6 +7,7 @@ import { QuickAppsGrid } from './components/dashboard/QuickAppsGrid';
 import { ChemistryStatsWidget } from './components/dashboard/ChemistryStatsWidget';
 import { LabSheetModal } from './features/home/LabSheetModal';
 import { HelpModal } from './components/help/HelpModal';
+import { AskTeacherView } from './features/teacher/AskTeacherView';
 import { VirtualLabModal } from './features/virtualLab/VirtualLabModal';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { TeacherDashboard } from './features/teacher/TeacherDashboard';
@@ -282,10 +283,19 @@ function App() {
             setTeacherViewMode('dashboard');
             return;
           }
-          setActiveTab(tabId);
-          if (tabId === 'help' || tabId === 'discuss') {
+          if (tabId === 'help') {
             setIsContactModalOpen(true);
+            return;
           }
+          if (tabId === 'modules') {
+            handleOpenStudySheet('1.1');
+            return;
+          }
+          if (tabId === 'history') {
+            triggerToast('Riwayat Belajar: Modul 1 Sel Elektrolisis (100% Siap Belajar).');
+            return;
+          }
+          setActiveTab(tabId);
         }}
         onLogout={handleLogout}
         isTeacher={userProfile.role === 'teacher'}
@@ -303,32 +313,49 @@ function App() {
           onOpenTeacherDashboard={
             userProfile.role === 'teacher' ? () => setTeacherViewMode('dashboard') : undefined
           }
+          onOpenTeacher={() => setActiveTab('discuss')}
+          isTeacherActive={activeTab === 'discuss'}
+          onOpenHelp={() => setIsContactModalOpen(true)}
         />
 
-        {/* Banner Sambutan Personalisasi */}
-        <WelcomeBanner
-          studentName={userProfile.name}
-          onStartLearning={() => handleOpenStudySheet('1.1')}
-          onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
-        />
-
-        {/* 4 Kartu Bagian Belajar Utama */}
-        <LearningCardsRow
-          onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
-          onSeeAll={() => handleOpenStudySheet('1.1')}
-        />
-
-        {/* Baris Bawah: Modul Lanjutan & Statistik Kimia */}
-        <div className="bottom-sections-row">
-          <QuickAppsGrid
-            onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
-            onLockedClick={(title) =>
-              triggerToast(`${title} berstatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
+        {/* TAMPILAN BERDASARKAN TAB AKTIF: HALAMAN PESAN / TANYA GURU VS BERANDA */}
+        {activeTab === 'discuss' ? (
+          <AskTeacherView
+            studentProfile={userProfile}
+            onBackToHome={() => setActiveTab('home')}
+            onOpenHelp={() => setIsContactModalOpen(true)}
+            onOpenTeacherDashboard={
+              userProfile.role === 'teacher' ? () => setTeacherViewMode('dashboard') : undefined
             }
-            onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
           />
-          <ChemistryStatsWidget />
-        </div>
+        ) : (
+          <>
+            {/* Banner Sambutan Personalisasi */}
+            <WelcomeBanner
+              studentName={userProfile.name}
+              onStartLearning={() => handleOpenStudySheet('1.1')}
+              onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
+            />
+
+            {/* 4 Kartu Bagian Belajar Utama */}
+            <LearningCardsRow
+              onSelectSubtopic={(subId) => handleOpenStudySheet(subId)}
+              onSeeAll={() => handleOpenStudySheet('1.1')}
+            />
+
+            {/* Baris Bawah: Modul Lanjutan & Statistik Kimia */}
+            <div className="bottom-sections-row">
+              <QuickAppsGrid
+                onOpenStudySheet={(subId) => handleOpenStudySheet(subId)}
+                onLockedClick={(title) =>
+                  triggerToast(`${title} berstatus BELUM TERSEDIA — Selesaikan Bab 1 terlebih dahulu sesuai PRD.`)
+                }
+                onOpenVirtualLab={() => setIsVirtualLabOpen(true)}
+              />
+              <ChemistryStatsWidget />
+            </div>
+          </>
+        )}
       </main>
 
       {/* 3. Lembar Belajar Laboratorium Interaktif (Dengan Bank Soal Dinamis & Catat Nilai) */}

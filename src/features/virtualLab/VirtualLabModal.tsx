@@ -17,12 +17,12 @@ interface VirtualLabModalProps {
  */
 export const VirtualLabModal: React.FC<VirtualLabModalProps> = ({ isOpen, onClose }) => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [iframeKey, setIframeKey] = useState<number>(Date.now());
+  const [reloadCounter, setReloadCounter] = useState<number>(0);
 
   if (!isOpen) return null;
 
   const handleReload = () => {
-    setIframeKey(Date.now());
+    setReloadCounter((prev) => prev + 1);
   };
 
   const handleOpenNewTab = () => {
@@ -107,7 +107,7 @@ export const VirtualLabModal: React.FC<VirtualLabModalProps> = ({ isOpen, onClos
         {/* Frame Simulasi Lab Virtual */}
         <div className="virtual-lab-frame-wrapper">
           <iframe
-            key={iframeKey}
+            key={reloadCounter}
             src="/lab-virtual.html"
             title="Lab Virtual Sel Elektrolisis"
             className="virtual-lab-iframe"
