@@ -970,44 +970,31 @@
 .login-screen-wrapper {
   position: relative;
   min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  background: radial-gradient(circle at 10% 20%, rgba(254, 215, 170, 0.5) 0%, transparent 45%),
-              radial-gradient(circle at 90% 80%, rgba(186, 230, 253, 0.65) 0%, transparent 45%),
-              linear-gradient(135deg, #dbeafe 0%, #bae6fd 30%, #7dd3fc 75%, #38bdf8 100%);
-  width: 100%;
+  padding: 2.5rem 1.25rem;
+  background-color: #dbeafe;
+  background-image: url('/login-bg-fullscreen.jpg');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   overflow-x: hidden;
 }
 
-/* Atmospheric Glow & Sunlight Effects */
-.login-bg-glow {
+/* Lapisan bayangan halus agar teks dan kartu login kontras maksimal */
+.login-screen-wrapper::before {
+  content: '';
   position: absolute;
-  border-radius: 50%;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, rgba(15, 23, 42, 0.12) 100%);
   pointer-events: none;
   z-index: 0;
 }
 
-.login-bg-glow-sun {
-  top: -80px;
-  left: -80px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(254, 240, 138, 0.65) 0%, rgba(253, 186, 116, 0.35) 45%, transparent 70%);
-  filter: blur(50px);
-}
-
-.login-bg-glow-blue {
-  bottom: -60px;
-  right: -60px;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.28) 0%, transparent 70%);
-  filter: blur(60px);
-}
-
-/* Floating Chemical Bubbles */
+/* Floating Chemical Bubbles Sepanjang Layar */
 .login-floating-bubbles {
   position: absolute;
   inset: 0;
@@ -1027,7 +1014,7 @@
 .bubble-1 {
   width: 48px;
   height: 48px;
-  left: 12%;
+  left: 10%;
   bottom: -50px;
   animation-duration: 16s;
   animation-delay: 0s;
@@ -1036,7 +1023,7 @@
 .bubble-2 {
   width: 32px;
   height: 32px;
-  left: 28%;
+  left: 24%;
   bottom: -40px;
   animation-duration: 12s;
   animation-delay: 2s;
@@ -1045,7 +1032,7 @@
 .bubble-3 {
   width: 56px;
   height: 56px;
-  right: 22%;
+  right: 20%;
   bottom: -60px;
   animation-duration: 18s;
   animation-delay: 1s;
@@ -1054,7 +1041,7 @@
 .bubble-4 {
   width: 24px;
   height: 24px;
-  right: 10%;
+  right: 8%;
   bottom: -30px;
   animation-duration: 10s;
   animation-delay: 4s;
@@ -1086,88 +1073,21 @@
   }
 }
 
-/* Container Layout with Center Card and Side Illustrations */
-.login-container-layout {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 100%;
-  max-width: 1180px;
-  margin: auto;
-}
-
-/* 3D Scientist Mascot (Left Illustration) */
-.login-mascot-decor {
-  display: block;
-  flex-shrink: 0;
-  width: 250px;
-  margin-right: -42px;
-  z-index: 3;
-  filter: drop-shadow(0 15px 30px rgba(15, 23, 42, 0.2));
-  pointer-events: none;
-  animation: floatMascot 4s ease-in-out infinite;
-}
-
-.login-scientist-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
-
-/* Lab Flask Decor (Right Illustration) */
-.login-flask-decor {
-  display: block;
-  flex-shrink: 0;
-  width: 175px;
-  margin-left: -32px;
-  z-index: 3;
-  filter: drop-shadow(0 12px 24px rgba(15, 23, 42, 0.16));
-  pointer-events: none;
-  animation: floatFlask 4.5s ease-in-out infinite alternate;
-}
-
-.login-flask-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
-
-@keyframes floatMascot {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes floatFlask {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-/* Glassmorphic Login Card */
+/* Glassmorphic Login Card yang Elegan & Menyatu */
 .login-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.91);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border-radius: 28px;
   padding: 2.25rem 2.15rem;
   max-width: 440px;
   width: 100%;
-  box-shadow: 0 24px 60px -12px rgba(30, 27, 75, 0.18), 0 0 0 1.5px rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.28), 0 0 0 1.5px rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
   animation: fadeIn 0.3s ease-out;
   position: relative;
   z-index: 2;
+  margin: auto;
 }
 
 .login-header {
@@ -1449,34 +1369,18 @@
   font-weight: 500;
 }
 
-/* Responsive adjustments for mascot & decorations */
-@media (max-width: 992px) {
-  .login-mascot-decor {
-    width: 200px;
-    margin-right: -32px;
-  }
-  .login-flask-decor {
-    width: 140px;
-    margin-left: -24px;
-  }
-}
-
+/* Responsive adjustments untuk tampilan layar ponsel/tablet */
 @media (max-width: 768px) {
-  .login-container-layout {
-    flex-direction: column;
-    align-items: center;
-  }
-  .login-mascot-decor {
-    width: 170px;
-    margin-right: 0;
-    margin-bottom: -15px;
-    order: -1;
-  }
-  .login-flask-decor {
-    display: none;
+  .login-screen-wrapper {
+    background-position: 25% bottom;
+    background-attachment: scroll;
+    padding: 1.5rem 1rem;
   }
   .login-card {
-    padding: 1.75rem 1.4rem;
+    padding: 1.75rem 1.35rem;
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 }
 
