@@ -457,8 +457,8 @@ export const ElectrolysisSimulator: React.FC = () => {
               <g
                 className="sim-switch-interactive"
                 onClick={toggleSwitch}
-                title={`Klik saklar untuk ${isSwitchClosed ? 'MEMUTUS' : 'MENGHUBUNGKAN'} arus`}
               >
+                <title>{`Klik saklar untuk ${isSwitchClosed ? 'MEMUTUS' : 'MENGHUBUNGKAN'} arus`}</title>
                 {/* Switch Contacts */}
                 <circle cx="355" cy="85" r="4.5" fill="#f59e0b" stroke="#78350f" strokeWidth="1.5" />
                 <circle cx="355" cy="118" r="4.5" fill="#f59e0b" stroke="#78350f" strokeWidth="1.5" />

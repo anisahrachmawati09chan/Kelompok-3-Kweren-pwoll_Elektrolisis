@@ -231,7 +231,7 @@ export const ELECTRODES: Record<ElectrodeId, ElectrodeInfo> = {
  */
 export function calculateElectrolysisReactions(
   electrolyteId: ElectrolyteId,
-  cathodeId: ElectrodeId,
+  _cathodeId: ElectrodeId,
   anodeId: ElectrodeId
 ): ElectrolysisReactionResult {
   const electrolyte = ELECTROLYTES[electrolyteId];

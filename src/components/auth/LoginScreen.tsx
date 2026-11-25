@@ -371,18 +371,42 @@ const handleQuickDemoTeacher = () => {
 
 return (
   <div className="login-screen-wrapper">
-    <div className="login-card">
-      {/* Header Kartu Otentikasi */}
-      <div className="login-header">
-        <div className="login-icon-badge">
-          <FlaskConical size={28} />
-        </div>
-        <span className="login-curriculum-tag">Fase F Kurikulum Merdeka</span>
-        <h1 className="login-title">
-          {authMode === 'login' ? 'Masuk ke ChemVerse' : 'Daftar Akun ChemVerse'}
-        </h1>
-        <p className="login-subtitle">
-          {authMode === 'login'
+    {/* Latar Belakang Atmosfer Laboratorium & Cahaya Hangat */}
+    <div className="login-bg-glow login-bg-glow-sun" aria-hidden="true" />
+    <div className="login-bg-glow login-bg-glow-blue" aria-hidden="true" />
+
+    {/* Partikel Gelembung Kimia Bergerak Lembut */}
+    <div className="login-floating-bubbles" aria-hidden="true">
+      <span className="login-bubble bubble-1" />
+      <span className="login-bubble bubble-2" />
+      <span className="login-bubble bubble-3" />
+      <span className="login-bubble bubble-4" />
+      <span className="login-bubble bubble-5" />
+    </div>
+
+    <div className="login-container-layout">
+      {/* Karakter 3D Ilmuwan Cilik (Mascot Kiri) */}
+      <div className="login-mascot-decor" aria-hidden="true">
+        <img
+          src="/scientist-clean.png"
+          alt="Mascot ChemVerse Siswa Kimia"
+          className="login-scientist-img"
+        />
+      </div>
+
+      {/* Kartu Utama Otentikasi Glassmorphic */}
+      <div className="login-card">
+        {/* Header Kartu Otentikasi */}
+        <div className="login-header">
+          <div className="login-icon-badge">
+            <FlaskConical size={28} />
+          </div>
+          <span className="login-curriculum-tag">Fase F Kurikulum Merdeka</span>
+          <h1 className="login-title">
+            {authMode === 'login' ? 'Masuk ke ChemVerse' : 'Daftar Akun ChemVerse'}
+          </h1>
+          <p className="login-subtitle">
+            {authMode === 'login'
             ? 'Silakan masuk untuk melanjutkan pembelajaran sel elektrolisis'
             : 'Buat akun baru untuk mulai mencatat riwayat dan nilai belajar'}
         </p>
@@ -897,6 +921,16 @@ return (
               <span>Sistem Pembelajaran Terintegrasi • Google Auth & Firebase Cloud</span>
             </div>
           </div>
-    </div>
+
+          {/* Dekorasi Lab: Erlenmeyer & Tanaman (Mascot Kanan) */}
+          <div className="login-flask-decor" aria-hidden="true">
+            <img
+              src="/lab-flask.png"
+              alt="Peralatan Laboratorium Kimia"
+              className="login-flask-img"
+            />
+          </div>
+        </div>
+      </div>
     );
 };
